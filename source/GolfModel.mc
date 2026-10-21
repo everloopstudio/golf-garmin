@@ -7,7 +7,6 @@ using Toybox.Math;
 using Toybox.Position;
 using Toybox.System;
 using Toybox.Time;
-using Toybox.Timer;
 
 // Estado de la ronda: golpes por hoyo, posiciones GPS de cada golpe y actividad grabada.
 class GolfModel {
@@ -23,7 +22,6 @@ class GolfModel {
     var lastLoc = null;      // [lat, lon] del ultimo golpe del hoyo actual
     var lastShotDist = null; // metros del ultimo golpe medido
     var session = null;
-    var saveTimer = null;
     var startSteps = 0;
     var endSteps = null;
     var endDistance = null;
@@ -208,39 +206,26 @@ class GolfModel {
         }
     }
 
-    // saveIt = true deja la actividad parada a la espera de saveSession(); false la descarta.
-    // El guardado se retrasa hasta que termina el envio a la web: si coinciden, la
-    // sincronizacion automatica del reloj con Garmin Connect falla al compartir el Bluetooth.
+    // saveIt = true guarda la actividad y deja la ronda en cola para la web; false la descarta.
+    // La ronda no se envia aqui: enviar mientras el reloj sincroniza la actividad con
+    // Garmin Connect hace fallar esa sincronizacion. Se envia al abrir la app la proxima vez.
     function finish(saveIt) {
         endSteps = stepsNow();
         endDistance = distanceNowM();
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
         if (session != null) {
             session.stop();
-            if (!saveIt) {
+            if (saveIt) {
+                session.save();
+            } else {
                 session.discard();
-                session = null;
             }
+            session = null;
         }
         if (saveIt) {
             queueForUpload();
-            // por si la web nunca responde: guarda igualmente pasados 20 s
-            saveTimer = new Timer.Timer();
-            saveTimer.start(method(:saveSession), 20000, false);
         }
         printCsv();
-    }
-
-    // Guarda la actividad en el reloj (se sincroniza con Garmin Connect). Se puede llamar varias veces.
-    function saveSession() as Void {
-        if (saveTimer != null) {
-            saveTimer.stop();
-            saveTimer = null;
-        }
-        if (session != null) {
-            session.save();
-            session = null;
-        }
     }
 
     // Deja la ronda en la cola de envio; GolfSync la manda al servidor (y reintenta si falla).

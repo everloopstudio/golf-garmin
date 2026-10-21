@@ -3,8 +3,8 @@ using Toybox.Application;
 using Toybox.Communications;
 using Toybox.WatchUi;
 
-// Envia las rondas guardadas al servidor. Las pendientes se conservan en Storage y se
-// reintentan en el siguiente arranque, asi que no se pierde nada si no hay conexion con el movil.
+// Envia las rondas guardadas al servidor al arrancar la app. Las pendientes se conservan en
+// Storage hasta que el servidor responde 200, asi que no se pierde nada si no hay conexion con el movil.
 class GolfSync {
 
     var status = :idle;  // :idle, :sending, :ok, :failed
@@ -21,19 +21,12 @@ class GolfSync {
         return null;
     }
 
-    var onDone = null;   // se llama al terminar la cola de envio (bien o mal)
-
-    // done: metodo opcional a llamar cuando termine el envio de todo lo pendiente.
-    function sendPending(done as Method or Null) as Void {
-        if (done != null) {
-            onDone = done;
-        }
+    function sendPending() {
         if (status == :sending) {
             return;
         }
         var q = pending();
         if (q == null) {
-            finishQueue();
             return;
         }
         status = :sending;
@@ -49,17 +42,8 @@ class GolfSync {
         } catch (e) {
             status = :failed;
             lastCode = "EXC";
-            finishQueue();
         }
         WatchUi.requestUpdate();
-    }
-
-    function finishQueue() {
-        if (onDone != null) {
-            var d = onDone;
-            onDone = null;
-            d.invoke();
-        }
     }
 
     function onResponse(code as Number, data as Dictionary or String or Null) as Void {
@@ -75,13 +59,12 @@ class GolfSync {
             }
             status = :ok;
             if (pending() != null) {
-                sendPending(null);
+                sendPending();
                 return;
             }
         } else {
             status = :failed;
         }
-        finishQueue();
         WatchUi.requestUpdate();
     }
 }

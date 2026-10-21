@@ -1,4 +1,3 @@
-using Toybox.Application;
 using Toybox.Graphics;
 using Toybox.Timer;
 using Toybox.WatchUi;
@@ -134,17 +133,7 @@ class SummaryView extends WatchUi.View {
             ((steps == null) ? "--" : steps.toString()) + " pasos  " + fmtKm(model.endDistance),
             Graphics.TEXT_JUSTIFY_CENTER);
 
-        var sync = Application.getApp().sync;
-        var msg = "Pulsa una tecla para salir";
-        if (saved) {
-            if (sync.status == :sending) {
-                msg = "Enviando...";
-            } else if (sync.status == :ok) {
-                msg = "Enviado. Pulsa para salir";
-            } else if (sync.status == :failed) {
-                msg = "Error " + sync.lastCode;
-            }
-        }
+        var msg = saved ? "Web: al abrir la app" : "Pulsa una tecla para salir";
         dc.drawText(cx, h * 0.86, Graphics.FONT_XTINY, msg, Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
