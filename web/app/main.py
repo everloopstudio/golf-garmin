@@ -108,7 +108,9 @@ async def security_headers(request: Request, call_next):
     resp.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["X-Frame-Options"] = "DENY"
-    resp.headers["Referrer-Policy"] = "no-referrer"
+    # same-origin (no no-referrer): con no-referrer el navegador manda "Origin: null" en los
+    # formularios y same_origin() rechazaria acciones legitimas como eliminar una ronda.
+    resp.headers["Referrer-Policy"] = "same-origin"
     resp.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
     if request.url.path.startswith("/api/") or request.url.path in ("/login", "/"):
         resp.headers["Cache-Control"] = "no-store"
@@ -327,7 +329,10 @@ def round_page(request: Request, rid: str, _: None = Depends(require_login)):
 def same_origin(request: Request) -> None:
     # Defensa extra contra CSRF ademas de la cookie SameSite=Strict.
     origin = request.headers.get("origin")
-    if origin and origin.split("://", 1)[-1] != request.headers.get("host"):
+    if not origin:
+        return
+    hosts = {request.headers.get("host"), request.headers.get("x-forwarded-host")}
+    if origin.split("://", 1)[-1] not in hosts:
         raise HTTPException(status_code=403)
 
 
