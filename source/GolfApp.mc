@@ -4,9 +4,16 @@ using Toybox.WatchUi;
 class GolfApp extends Application.AppBase {
 
     var sync = new GolfSync();
+    var model = null;  // ronda en curso, para guardarla si la app se cierra desde el sistema
 
     function initialize() {
         AppBase.initialize();
+    }
+
+    function onStop(state) {
+        if (model != null) {
+            model.saveSession();
+        }
     }
 
     function getInitialView() {

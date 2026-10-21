@@ -206,26 +206,35 @@ class GolfModel {
         }
     }
 
-    // saveIt = true guarda la actividad y deja la ronda en cola para la web; false la descarta.
-    // La ronda no se envia aqui: enviar mientras el reloj sincroniza la actividad con
-    // Garmin Connect hace fallar esa sincronizacion. Se envia al abrir la app la proxima vez.
+    // saveIt = true para la actividad y deja la ronda en cola para la web; false la descarta.
+    // La actividad se guarda en saveSession(), al salir de la app: si se guarda con la app
+    // abierta, la subida automatica a Garmin Connect falla ("failed") aunque luego se recupera.
     function finish(saveIt) {
         endSteps = stepsNow();
         endDistance = distanceNowM();
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
         if (session != null) {
             session.stop();
-            if (saveIt) {
-                session.save();
-            } else {
+            if (!saveIt) {
                 session.discard();
+                session = null;
             }
-            session = null;
         }
         if (saveIt) {
             queueForUpload();
         }
         printCsv();
+    }
+
+    // Guarda la actividad (la para si aun graba). Se puede llamar varias veces.
+    function saveSession() {
+        if (session != null) {
+            if (session.isRecording()) {
+                session.stop();
+            }
+            session.save();
+            session = null;
+        }
     }
 
     // Deja la ronda en la cola de envio; GolfSync la manda al servidor (y reintenta si falla).

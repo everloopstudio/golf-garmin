@@ -133,7 +133,7 @@ class SummaryView extends WatchUi.View {
             ((steps == null) ? "--" : steps.toString()) + " pasos  " + fmtKm(model.endDistance),
             Graphics.TEXT_JUSTIFY_CENTER);
 
-        var msg = saved ? "Web: al abrir la app" : "Pulsa una tecla para salir";
+        var msg = saved ? "Pulsa para guardar y salir" : "Pulsa una tecla para salir";
         dc.drawText(cx, h * 0.86, Graphics.FONT_XTINY, msg, Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
