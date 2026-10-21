@@ -1,0 +1,25 @@
+# Despliegue en Dokploy: tipo "Compose". El dominio y el HTTPS se configuran en la pestana
+# Domains de Dokploy (servicio web, puerto 8000). Las variables van en Environment.
+services:
+  web:
+    build: ./web
+    restart: unless-stopped
+    environment:
+      APP_PIN: ${APP_PIN:?define APP_PIN}
+      DEVICE_TOKEN: ${DEVICE_TOKEN:?define DEVICE_TOKEN}
+      SECRET_KEY: ${SECRET_KEY:?define SECRET_KEY}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    volumes:
+      - golf_data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    expose:
+      - "8000"
+
+volumes:
+  golf_data:

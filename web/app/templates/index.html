@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Rondas · Golf{% endblock %}
+{% block content %}
+<section class="stats">
+  <div class="stat"><span>Rondas</span><b>{{ stats.rounds }}</b></div>
+  <div class="stat"><span>Mejor</span><b>{% if stats.best %}{{ stats.best.total }} <small>({{ stats.best.diff|diff }})</small>{% else %}–{% endif %}</b></div>
+  <div class="stat"><span>Media vs par</span><b>{% if stats.avg_diff is not none %}{{ "%+.1f"|format(stats.avg_diff) }}{% else %}–{% endif %}</b></div>
+  <div class="stat"><span>Golpe medio</span><b>{% if stats.avg_shot %}{{ stats.avg_shot|round|int }} m{% else %}–{% endif %}</b></div>
+</section>
+
+{% if chart|length > 1 %}
+<section class="card">
+  <h2>Evolución</h2>
+  <canvas id="evo" height="140"></canvas>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Rondas</h2>
+  {% if rounds %}
+  <ul class="rounds">
+    {% for r in rounds %}
+    <li><a href="/rounds/{{ r.id }}">
+      <div><b>{{ r.course }}</b><small>{{ r.started_at|date }}</small></div>
+      <div class="score">{{ r.total }}<small class="{{ 'neg' if r.diff < 0 else 'pos' if r.diff > 0 else '' }}">{{ r.diff|diff if r.holes_played else '' }}</small></div>
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Aún no hay rondas. Guarda una desde el reloj.</p>
+  {% endif %}
+</section>
+<script type="application/json" id="chart-data">{{ chart|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+{% if chart|length > 1 %}
+<script src="/static/vendor/chart.umd.min.js"></script>
+<script src="/static/index.js"></script>
+{% endif %}
+{% endblock %}

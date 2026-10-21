@@ -1,0 +1,10 @@
+# secretos
+.env
+source/Secrets.mc
+# compilados y datos locales
+bin/
+*.prg
+*.iq
+__pycache__/
+*.pyc
+data/

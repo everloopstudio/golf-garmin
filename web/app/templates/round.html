@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ r.course }} · Golf{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/vendor/leaflet.css">{% endblock %}
+{% block content %}
+<a class="back" href="/">← Rondas</a>
+<h1>{{ r.course }}</h1>
+<p class="muted">{{ r.started_at|date }}{% if r.steps %} · {{ r.steps }} pasos{% endif %}{% if r.distance_m %} · {{ "%.1f"|format(r.distance_m / 1000) }} km{% endif %}</p>
+
+<section class="stats">
+  <div class="stat"><span>Golpes</span><b>{{ r.total }}</b></div>
+  <div class="stat"><span>Par</span><b>{{ r.par_played }}</b></div>
+  <div class="stat"><span>Resultado</span><b>{{ r.diff|diff }}</b></div>
+  <div class="stat"><span>Golpe medio</span><b>{% if r.avg_shot %}{{ r.avg_shot|round|int }} m{% else %}–{% endif %}</b></div>
+</section>
+
+<section class="card">
+  <h2>Scorecard</h2>
+  {% for chunk in r.per_hole|batch(9) %}
+  <div class="scroll">
+  <table class="card-table">
+    <tr><th>Hoyo</th>{% for h in chunk %}<td>{{ h.hole }}</td>{% endfor %}<th>{{ 'Tot' }}</th></tr>
+    <tr><th>Par</th>{% for h in chunk %}<td>{{ h.par }}</td>{% endfor %}<td>{{ chunk|sum(attribute='par') }}</td></tr>
+    <tr><th>Golpes</th>{% for h in chunk %}
+      {% set d = h.strokes - h.par %}
+      <td>{% if h.strokes %}<span class="mark {{ 'eagle' if d <= -2 else 'birdie' if d == -1 else 'par' if d == 0 else 'bogey' if d == 1 else 'dbl' }}">{{ h.strokes }}</span>{% else %}·{% endif %}</td>
+    {% endfor %}<td><b>{{ chunk|sum(attribute='strokes') }}</b></td></tr>
+  </table>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Mapa</h2>
+  <div class="chips" id="chips"></div>
+  <div id="map" role="img" aria-label="Mapa de los golpes"></div>
+  <p class="muted small">© colaboradores de OpenStreetMap</p>
+</section>
+
+<section class="card">
+  <h2>Golpes</h2>
+  <div class="scroll">
+  <table class="list">
+    <tr><th>Hoyo</th><th>#</th><th>Hora</th><th>Dist.</th><th>Coordenadas</th></tr>
+    {% for s in r.shots %}
+    <tr>
+      <td>{{ s.hole }}</td><td>{{ s.n }}</td>
+      <td>{% if s.ts %}{{ s.ts|date }}{% else %}–{% endif %}</td>
+      <td>{% if s.dist is not none %}{{ s.dist|round|int }} m{% else %}–{% endif %}</td>
+      <td>{% if s.lat is not none %}{{ "%.5f"|format(s.lat) }}, {{ "%.5f"|format(s.lon) }}{% else %}sin GPS{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</section>
+<script type="application/json" id="shots-data">{{ r.shots|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="/static/vendor/leaflet.js"></script>
+<script src="/static/round.js"></script>
+{% endblock %}
