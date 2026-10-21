@@ -3,12 +3,14 @@ using Toybox.Application;
 using Toybox.Communications;
 using Toybox.WatchUi;
 
-// Envia las rondas guardadas al servidor al arrancar la app. Las pendientes se conservan en
-// Storage hasta que el servidor responde 200, asi que no se pierde nada si no hay conexion con el movil.
+// Envia las rondas guardadas al servidor: al salir del resumen de la ronda y, por si alguna
+// quedo pendiente, al arrancar la app. Las pendientes se conservan en Storage hasta que el
+// servidor responde 200, asi que no se pierde nada si no hay conexion con el movil.
 class GolfSync {
 
     var status = :idle;  // :idle, :sending, :ok, :failed
     var lastCode = null; // ultimo codigo de respuesta (HTTP o error de Garmin, p.ej. -104 = sin movil)
+    var onDone = null;   // se llama al terminar la cola de envio, bien o mal
 
     function pending() {
         try {
@@ -21,12 +23,17 @@ class GolfSync {
         return null;
     }
 
-    function sendPending() {
+    // done: metodo opcional a llamar cuando se termine de enviar todo lo pendiente.
+    function sendPending(done as Method or Null) as Void {
+        if (done != null) {
+            onDone = done;
+        }
         if (status == :sending) {
             return;
         }
         var q = pending();
         if (q == null) {
+            finishQueue();
             return;
         }
         status = :sending;
@@ -42,6 +49,7 @@ class GolfSync {
         } catch (e) {
             status = :failed;
             lastCode = "EXC";
+            finishQueue();
         }
         WatchUi.requestUpdate();
     }
@@ -59,12 +67,21 @@ class GolfSync {
             }
             status = :ok;
             if (pending() != null) {
-                sendPending();
+                sendPending(null);
                 return;
             }
         } else {
             status = :failed;
         }
+        finishQueue();
         WatchUi.requestUpdate();
+    }
+
+    function finishQueue() {
+        if (onDone != null) {
+            var d = onDone;
+            onDone = null;
+            d.invoke();
+        }
     }
 }

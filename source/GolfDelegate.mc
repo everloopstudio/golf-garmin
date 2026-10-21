@@ -1,6 +1,7 @@
 using Toybox.Application;
 using Toybox.Attention;
 using Toybox.System;
+using Toybox.Timer;
 using Toybox.WatchUi;
 
 // Controles del Instinct 2:
@@ -82,28 +83,53 @@ class GolfMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 }
 
+// Resumen: cualquier boton envia la ronda a la web y, al terminar, guarda la actividad y sale.
+// Guardar justo al salir evita el "failed" de la subida automatica a Garmin Connect.
 class SummaryDelegate extends WatchUi.BehaviorDelegate {
 
     var model;
+    var leaving = false;
+    var timer = null;
 
     function initialize(m) {
         BehaviorDelegate.initialize();
         model = m;
     }
 
-    function exitApp() {
+    function onButton() {
+        if (leaving) {
+            saveAndExit();  // segunda pulsacion: no esperar a la web (la ronda queda en cola)
+            return true;
+        }
+        leaving = true;
+        timer = new Timer.Timer();
+        timer.start(method(:saveAndExit), 15000, false);
+        Application.getApp().sync.sendPending(method(:saveAndExit));
+        return true;
+    }
+
+    function saveAndExit() as Void {
+        if (timer != null) {
+            timer.stop();
+        }
         model.saveSession();
         System.exit();
     }
 
     function onSelect() {
-        exitApp();
-        return true;
+        return onButton();
     }
 
     function onBack() {
-        exitApp();
-        return true;
+        return onButton();
+    }
+
+    function onNextPage() {
+        return onButton();
+    }
+
+    function onPreviousPage() {
+        return onButton();
     }
 }
 

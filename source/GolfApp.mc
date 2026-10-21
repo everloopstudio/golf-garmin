@@ -17,7 +17,7 @@ class GolfApp extends Application.AppBase {
     }
 
     function getInitialView() {
-        sync.sendPending();  // envia las rondas guardadas (nunca durante el guardado, ver GolfModel.finish)
+        sync.sendPending(null);  // rondas que no se pudieron enviar al salir la ultima vez
         var menu = new WatchUi.Menu2({ :title => "Campo" });
         var courses = getCourses();
         for (var i = 0; i < courses.size(); i++) {
