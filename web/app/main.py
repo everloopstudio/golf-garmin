@@ -11,7 +11,7 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, field_validator
@@ -322,6 +322,37 @@ def round_page(request: Request, rid: str, _: None = Depends(require_login)):
     if r is None:
         raise HTTPException(status_code=404)
     return templates.TemplateResponse(request, "round.html", {"r": r})
+
+
+def same_origin(request: Request) -> None:
+    # Defensa extra contra CSRF ademas de la cookie SameSite=Strict.
+    origin = request.headers.get("origin")
+    if origin and origin.split("://", 1)[-1] != request.headers.get("host"):
+        raise HTTPException(status_code=403)
+
+
+@app.post("/rounds/{rid}/delete")
+def delete_round(
+    request: Request, rid: str,
+    _: None = Depends(require_login), __: None = Depends(same_origin),
+):
+    if not re.fullmatch(r"[A-Za-z0-9_-]{4,64}", rid):
+        raise HTTPException(status_code=404)
+    with closing(db()) as con:
+        con.execute("DELETE FROM rounds WHERE id = ?", (rid,))  # los golpes caen en cascada
+        con.commit()
+    return RedirectResponse("/", status_code=303)
+
+
+@app.get("/favicon.ico")
+def favicon():
+    return FileResponse(BASE / "static" / "icons" / "favicon-32.png", media_type="image/png")
+
+
+@app.get("/apple-touch-icon.png")
+@app.get("/apple-touch-icon-precomposed.png")
+def apple_touch_icon():
+    return FileResponse(BASE / "static" / "icons" / "apple-touch-icon.png", media_type="image/png")
 
 
 @app.get("/healthz")

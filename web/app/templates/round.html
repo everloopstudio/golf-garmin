@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ r.course }} · Golf{% endblock %}
+{% block title %}{{ r.course }} · GOLFITO{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/vendor/leaflet.css">{% endblock %}
 {% block content %}
 <a class="back" href="/">← Rondas</a>
@@ -52,6 +52,10 @@
   </table>
   </div>
 </section>
+<form class="danger" method="post" action="/rounds/{{ r.id }}/delete"
+      data-confirm="¿Eliminar esta ronda? No se puede deshacer.">
+  <button type="submit">Eliminar ronda</button>
+</form>
 <script type="application/json" id="shots-data">{{ r.shots|tojson }}</script>
 {% endblock %}
 {% block scripts %}

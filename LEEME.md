@@ -1,4 +1,4 @@
-# Golf Cuenta (prototipo 0.1) para Garmin Instinct 2
+# GOLFITO (prototipo 0.1) para Garmin Instinct 2
 
 Contador de golpes con GPS por golpe. No sustituye tu pantalla de inicio: se abre desde la lista de apps.
 
@@ -32,7 +32,7 @@ Al guardar la ronda, el reloj envía los golpes (hoyo, hora, GPS, distancia) por
 ## Probar en el reloj
 1. VS Code: "Monkey C: Build for Device" > instinct2 > se genera un `.prg`.
 2. Conecta el Instinct 2 por USB, copia el `.prg` a `GARMIN/Apps/` y desconecta.
-3. En el reloj: lista de apps > Golf Cuenta. Sal al aire libre y espera "GPS ok" antes de la prueba.
+3. En el reloj: lista de apps > GOLFITO. Sal al aire libre y espera "GPS ok" antes de la prueba.
 4. Prueba corta cerca de casa: 3 golpes en un hoyo, andando 30-50 m entre ellos. Guarda y mira la actividad en Garmin Connect (¿salen las vueltas en el mapa?).
 
 ## Qué no está probado
