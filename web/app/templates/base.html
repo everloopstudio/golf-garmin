@@ -17,5 +17,6 @@
 </header>
 <main>{% block content %}{% endblock %}</main>
 {% block scripts %}{% endblock %}
+{% if request.session.get("ok") %}<script src="/static/pull.js"></script>{% endif %}
 </body>
 </html>

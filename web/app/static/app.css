@@ -56,3 +56,10 @@ table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nu
   border: 1px solid var(--line); background: var(--card); color: var(--text); }
 .login button { font: inherit; padding: 12px; border-radius: 12px; border: 0; background: var(--accent); color: var(--card); font-weight: 600; cursor: pointer; }
 .err { color: var(--pos); margin: 0; }
+.pull { position: fixed; top: 6px; left: 50%; transform: translate(-50%, 0); opacity: 0; z-index: 1000;
+  width: 34px; height: 34px; border-radius: 50%; background: var(--card); border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 16px; transition: transform .15s ease, opacity .15s ease, color .15s; pointer-events: none; }
+.pull.ready { color: var(--accent); }
+.pull.loading { opacity: 1; border: 3px solid var(--line); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: translate(-50%, 36px) rotate(360deg); } }
