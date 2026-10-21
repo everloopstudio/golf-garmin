@@ -5,8 +5,10 @@ import re
 import sqlite3
 import time
 from contextlib import closing
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -23,6 +25,7 @@ APP_PIN = os.environ["APP_PIN"]
 DEVICE_TOKEN = os.environ["DEVICE_TOKEN"]
 SECRET_KEY = os.environ["SECRET_KEY"]
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() != "false"
+TZ = ZoneInfo(os.environ.get("APP_TIMEZONE", "Europe/Andorra"))
 
 if len(DEVICE_TOKEN) < 24 or len(SECRET_KEY) < 32:
     raise RuntimeError("DEVICE_TOKEN (>=24) y SECRET_KEY (>=32) deben ser largos y aleatorios")
@@ -303,7 +306,7 @@ def index(request: Request, _: None = Depends(require_login)):
     if dists:
         stats["avg_shot"] = sum(dists) / len(dists)
     chart = [
-        {"label": time.strftime("%d/%m", time.localtime(r["started_at"])), "diff": r["diff"]}
+        {"label": local(r["started_at"]).strftime("%d/%m"), "diff": r["diff"]}
         for r in reversed(played)
     ]
     return templates.TemplateResponse(
@@ -326,8 +329,12 @@ def healthz():
     return {"ok": True}
 
 
+def local(ts: int) -> datetime:
+    return datetime.fromtimestamp(ts, TZ)
+
+
 def fmt_date(ts: int) -> str:
-    return time.strftime("%d/%m/%Y %H:%M", time.localtime(ts))
+    return local(ts).strftime("%d/%m/%Y %H:%M")
 
 
 def fmt_diff(d: int) -> str:

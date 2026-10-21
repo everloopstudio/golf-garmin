@@ -9,6 +9,7 @@ services:
       DEVICE_TOKEN: ${DEVICE_TOKEN:?define DEVICE_TOKEN}
       SECRET_KEY: ${SECRET_KEY:?define SECRET_KEY}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Andorra}
     volumes:
       - golf_data:/data
     read_only: true
