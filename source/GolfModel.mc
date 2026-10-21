@@ -3,7 +3,6 @@ using Toybox.Activity;
 using Toybox.ActivityMonitor;
 using Toybox.ActivityRecording;
 using Toybox.Application;
-using Toybox.FitContributor;
 using Toybox.Math;
 using Toybox.Position;
 using Toybox.System;
@@ -23,8 +22,6 @@ class GolfModel {
     var lastLoc = null;      // [lat, lon] del ultimo golpe del hoyo actual
     var lastShotDist = null; // metros del ultimo golpe medido
     var session = null;
-    var strokeField = null;  // campo FIT propio en cada registro: golpes acumulados
-    var holeField = null;    // campo FIT propio en cada registro: hoyo actual
     var startSteps = 0;
     var endSteps = null;
     var endDistance = null;
@@ -56,16 +53,6 @@ class GolfModel {
             :sport => Activity.SPORT_GOLF,
             :subSport => Activity.SUB_SPORT_GENERIC
         });
-        try {
-            strokeField = session.createField("golpes", 0, FitContributor.DATA_TYPE_UINT8,
-                { :mesgType => FitContributor.MESG_TYPE_RECORD });
-            holeField = session.createField("hoyo", 1, FitContributor.DATA_TYPE_UINT8,
-                { :mesgType => FitContributor.MESG_TYPE_RECORD });
-        } catch (e) {
-            strokeField = null;
-            holeField = null;
-        }
-        updateFields();
         session.start();
     }
 
@@ -164,7 +151,6 @@ class GolfModel {
             hole = hole + 1;
             lastLoc = null;
             lastShotDist = null;
-            updateFields();
         }
     }
 
@@ -173,7 +159,6 @@ class GolfModel {
             hole = hole - 1;
             lastLoc = null;
             lastShotDist = null;
-            updateFields();
         }
     }
 
@@ -212,18 +197,7 @@ class GolfModel {
         return a.elapsedDistance;
     }
 
-    // Los campos se graban con cada registro (1/s): un cambio en "golpes" marca el instante del golpe.
-    function updateFields() {
-        if (strokeField != null) {
-            strokeField.setData(totalStrokes());
-        }
-        if (holeField != null) {
-            holeField.setData(hole + 1);
-        }
-    }
-
     function save() {
-        updateFields();
         try {
             Application.Storage.setValue("shots", shots);
             Application.Storage.setValue("strokes", strokes);
@@ -260,8 +234,16 @@ class GolfModel {
             var s = shots[i];
             var n = perHole.hasKey(s[0]) ? perHole[s[0]] + 1 : 1;
             perHole[s[0]] = n;
-            out.add({ "hole" => firstHole + s[0], "n" => n, "ts" => s[4],
-                      "lat" => s[1], "lon" => s[2], "dist" => s[3] });
+            // sin valores null: el serializador JSON del reloj no los admite en todos los modelos
+            var shot = { "hole" => firstHole + s[0], "n" => n, "ts" => s[4] };
+            if (s[1] != null) {
+                shot.put("lat", s[1]);
+                shot.put("lon", s[2]);
+            }
+            if (s[3] != null) {
+                shot.put("dist", s[3]);
+            }
+            out.add(shot);
         }
         var payload = {
             "id" => "r" + roundStart,
@@ -269,10 +251,14 @@ class GolfModel {
             "first_hole" => firstHole,
             "pars" => pars,
             "started_at" => roundStart,
-            "steps" => endSteps,
-            "distance_m" => endDistance,
             "shots" => out
         };
+        if (endSteps != null) {
+            payload.put("steps", endSteps);
+        }
+        if (endDistance != null) {
+            payload.put("distance_m", endDistance);
+        }
         try {
             var queue = [];
             var old = Application.Storage.getValue("pending");

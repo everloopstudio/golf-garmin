@@ -8,6 +8,7 @@ using Toybox.WatchUi;
 class GolfSync {
 
     var status = :idle;  // :idle, :sending, :ok, :failed
+    var lastCode = null; // ultimo codigo de respuesta (HTTP o error de Garmin, p.ej. -104 = sin movil)
 
     function pending() {
         try {
@@ -29,18 +30,24 @@ class GolfSync {
             return;
         }
         status = :sending;
-        Communications.makeWebRequest(webhookUrl(), q[0], {
-            :method => Communications.HTTP_REQUEST_METHOD_POST,
-            :headers => {
-                "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
-                "X-Device-Token" => deviceToken()
-            },
-            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
-        }, method(:onResponse));
+        try {
+            Communications.makeWebRequest(webhookUrl(), q[0], {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => {
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
+                    "X-Device-Token" => deviceToken()
+                },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            }, method(:onResponse));
+        } catch (e) {
+            status = :failed;
+            lastCode = "EXC";
+        }
         WatchUi.requestUpdate();
     }
 
     function onResponse(code as Number, data as Dictionary or String or Null) as Void {
+        lastCode = code;
         if (code == 200) {
             var q = pending();
             if (q != null) {

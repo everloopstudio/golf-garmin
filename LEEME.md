@@ -19,7 +19,7 @@ Al guardar la ronda, el reloj envía los golpes (hoyo, hora, GPS, distancia) por
 - Reloj: copia `source/Secrets.mc.example` a `source/Secrets.mc` (no se sube al repo) y pon la URL y el `DEVICE_TOKEN`.
 - Servidor: ver `.env.example`; en Dokploy, proyecto tipo Compose con este repo, variables en Environment y el dominio en Domains (servicio `web`, puerto 8000).
 - En local: `cd web && pip install -r requirements.txt && APP_PIN=1234 DEVICE_TOKEN=... SECRET_KEY=... COOKIE_SECURE=false DATA_DIR=./data uvicorn app.main:app`.
-- Datos de la actividad: `tools/golpes.py` lista los golpes de un `.fit` (campos propios `golpes` y `hoyo`).
+- Los golpes llegan a la web por el envío directo; el `.fit` de la actividad es el normal de Garmin (sin campos propios, porque Garmin Connect dejó de mostrar las actividades con ellos).
 
 ## Probar en el simulador (sin reloj)
 1. Instala Visual Studio Code y la extensión "Monkey C" de Garmin.

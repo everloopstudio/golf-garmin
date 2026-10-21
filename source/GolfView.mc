@@ -142,7 +142,7 @@ class SummaryView extends WatchUi.View {
             } else if (sync.status == :ok) {
                 msg = "Enviado. Pulsa para salir";
             } else if (sync.status == :failed) {
-                msg = "Sin envio (se reintenta)";
+                msg = "Error " + sync.lastCode;
             }
         }
         dc.drawText(cx, h * 0.86, Graphics.FONT_XTINY, msg, Graphics.TEXT_JUSTIFY_CENTER);
