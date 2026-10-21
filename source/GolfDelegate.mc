@@ -69,11 +69,11 @@ class GolfMenuDelegate extends WatchUi.Menu2InputDelegate {
             model.prevHole();
         } else if (id == :save) {
             model.finish(true);
-            Application.getApp().sync.sendPending();
-            WatchUi.switchToView(new SummaryView(model, true), new SummaryDelegate(), WatchUi.SLIDE_IMMEDIATE);
+            Application.getApp().sync.sendPending(model.method(:saveSession));
+            WatchUi.switchToView(new SummaryView(model, true), new SummaryDelegate(model), WatchUi.SLIDE_IMMEDIATE);
         } else if (id == :discard) {
             model.finish(false);
-            WatchUi.switchToView(new SummaryView(model, false), new SummaryDelegate(), WatchUi.SLIDE_IMMEDIATE);
+            WatchUi.switchToView(new SummaryView(model, false), new SummaryDelegate(model), WatchUi.SLIDE_IMMEDIATE);
         }
         WatchUi.requestUpdate();
     }
@@ -85,16 +85,27 @@ class GolfMenuDelegate extends WatchUi.Menu2InputDelegate {
 
 class SummaryDelegate extends WatchUi.BehaviorDelegate {
 
-    function initialize() {
+    var model;
+
+    function initialize(m) {
         BehaviorDelegate.initialize();
+        model = m;
+    }
+
+    // Si se sale antes de que acabe el envio, la actividad se guarda igualmente.
+    function exitApp() {
+        model.saveSession();
+        System.exit();
     }
 
     function onSelect() {
-        System.exit();
+        exitApp();
+        return true;
     }
 
     function onBack() {
-        System.exit();
+        exitApp();
+        return true;
     }
 }
 

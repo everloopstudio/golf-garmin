@@ -10,7 +10,7 @@ class GolfApp extends Application.AppBase {
     }
 
     function getInitialView() {
-        sync.sendPending();  // reintenta rondas que no se llegaron a enviar
+        sync.sendPending(null);  // reintenta rondas que no se llegaron a enviar
         var menu = new WatchUi.Menu2({ :title => "Campo" });
         var courses = getCourses();
         for (var i = 0; i < courses.size(); i++) {

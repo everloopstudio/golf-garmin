@@ -21,12 +21,19 @@ class GolfSync {
         return null;
     }
 
-    function sendPending() {
+    var onDone = null;   // se llama al terminar la cola de envio (bien o mal)
+
+    // done: metodo opcional a llamar cuando termine el envio de todo lo pendiente.
+    function sendPending(done as Method or Null) as Void {
+        if (done != null) {
+            onDone = done;
+        }
         if (status == :sending) {
             return;
         }
         var q = pending();
         if (q == null) {
+            finishQueue();
             return;
         }
         status = :sending;
@@ -42,8 +49,17 @@ class GolfSync {
         } catch (e) {
             status = :failed;
             lastCode = "EXC";
+            finishQueue();
         }
         WatchUi.requestUpdate();
+    }
+
+    function finishQueue() {
+        if (onDone != null) {
+            var d = onDone;
+            onDone = null;
+            d.invoke();
+        }
     }
 
     function onResponse(code as Number, data as Dictionary or String or Null) as Void {
@@ -59,12 +75,13 @@ class GolfSync {
             }
             status = :ok;
             if (pending() != null) {
-                sendPending();
+                sendPending(null);
                 return;
             }
         } else {
             status = :failed;
         }
+        finishQueue();
         WatchUi.requestUpdate();
     }
 }
