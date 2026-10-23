@@ -5,9 +5,9 @@ using Toybox.Timer;
 using Toybox.WatchUi;
 
 // Controles del Instinct 2:
-//   UP                 -> +1 golpe (vibra, guarda la posicion GPS)
-//   DOWN               -> -1 golpe (deshace el ultimo)
-//   START/STOP (GPS)   -> hoyo siguiente
+//   START/STOP (GPS)   -> +1 golpe (vibra, guarda la posicion GPS)
+//   UP                 -> -1 golpe (deshace el ultimo)
+//   DOWN               -> hoyo siguiente
 //   BACK (SET)         -> menu: continuar, hoyo anterior, guardar y salir, descartar
 class GolfDelegate extends WatchUi.BehaviorDelegate {
 
@@ -19,12 +19,6 @@ class GolfDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSelect() {
-        model.nextHole();
-        WatchUi.requestUpdate();
-        return true;
-    }
-
-    function onPreviousPage() {
         model.markShot();
         if (Attention has :vibrate) {
             Attention.vibrate([ new Attention.VibeProfile(60, 150) ]);
@@ -33,8 +27,14 @@ class GolfDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    function onNextPage() {
+    function onPreviousPage() {
         model.undoShot();
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    function onNextPage() {
+        model.nextHole();
         WatchUi.requestUpdate();
         return true;
     }

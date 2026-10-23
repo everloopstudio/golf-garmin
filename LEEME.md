@@ -3,12 +3,12 @@
 Contador de golpes con GPS por golpe. No sustituye tu pantalla de inicio: se abre desde la lista de apps.
 
 ## Controles
-- UP: +1 golpe (el reloj vibra y guarda la posición GPS)
-- DOWN: -1 golpe (deshace el último)
-- START/STOP (GPS): hoyo siguiente
+- START/STOP (GPS): +1 golpe (el reloj vibra y guarda la posición GPS)
+- UP: -1 golpe (deshace el último)
+- DOWN: hoyo siguiente
 - BACK (SET): menú (continuar, hoyo anterior, guardar y salir, descartar)
 
-Pantalla: hoyo, par, golpes del hoyo, total (con diferencia al par), metros desde el último golpe (en vivo), pasos y km desde el inicio.
+Pantalla: hoyo arriba; en la esfera pequeña el par del hoyo y la señal GPS (8 rayas, 2 por nivel); golpes del hoyo en grande; distancia del golpe anterior o desde el último golpe en vivo; total con diferencia al par; km. Los pasos salen en el resumen final.
 
 ## Campos
 Se definen en `source/GolfCourses.mc` (nombre + par de cada hoyo). Al abrir la app se elige campo y, si tiene más de 9 hoyos, 9 primeros / 9 últimos / 18. La app instalada por USB no aparece en los ajustes de Garmin Connect, por eso van en el código.
