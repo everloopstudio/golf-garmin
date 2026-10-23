@@ -26,6 +26,8 @@ La actividad también se guarda como una actividad normal de golf en Garmin Conn
 
 > **Importante:** la app del reloj no está en la tienda de Garmin. Se instala "a mano" copiando un archivo al reloj por USB. Este documento explica cómo.
 
+> **Cada persona monta su propio GOLFITO.** No hay un servidor común: tú pones la web en tu servidor y la app de tu reloj envía las rondas solo a tu web. Para empezar, haz un **fork** de este repositorio (botón *Fork* arriba a la derecha en GitHub): tendrás tu propia copia para desplegarla y cambiarla como quieras.
+
 ---
 
 ## Qué necesitas
@@ -50,7 +52,7 @@ Necesitas tres valores. Apúntalos, los usarás en el paso 2 y en el 3:
 
 | Nombre | Qué es | Ejemplo |
 |---|---|---|
-| `APP_PIN` | El PIN para entrar en la web (4 a 8 números) | `4821` |
+| `APP_PIN` | El PIN para entrar en la web (4 a 8 números; mejor 6 u 8) | `482193` |
 | `DEVICE_TOKEN` | Una clave larga que comparten el reloj y la web, para que nadie más pueda enviar rondas | (generada, ver abajo) |
 | `SECRET_KEY` | Una clave interna de la web para las sesiones | (generada, ver abajo) |
 
@@ -243,6 +245,12 @@ En VS Code, con la carpeta abierta, pulsa **F5** y elige **instinct2**. Se abre 
 
 ### Seguridad
 
-- La web pide PIN y bloquea tras 5 intentos fallidos.
+- La web pide PIN y bloquea una IP tras 5 intentos fallidos. Si hay muchos fallos desde muchas IPs (un ataque), se bloquean también los dispositivos nuevos, pero no los tuyos: los dispositivos donde ya entraste se recuerdan durante un año. Usa un PIN de 6 u 8 cifras.
 - El reloj se identifica con el `DEVICE_TOKEN`; sin él no se pueden enviar rondas ni leer campos.
 - Los secretos (`.env`, `source/Secrets.mc`, `developer_key`) **nunca** se suben al repositorio. Si alguno se filtra, genera uno nuevo y cámbialo en el servidor y en el reloj.
+
+---
+
+## Licencia
+
+[MIT](LICENSE): puedes usarlo, copiarlo y modificarlo libremente, también con fines comerciales, manteniendo el aviso de copyright. Se ofrece tal cual, sin garantías.

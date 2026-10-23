@@ -17,6 +17,7 @@ from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 from pydantic import BaseModel, Field, field_validator
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -137,7 +138,26 @@ def client_ip(request: Request) -> str:
     return request.client.host if request.client else "?"
 
 
-def login_locked(ip: str) -> bool:
+# Dispositivo de confianza: tras entrar con el PIN se guarda una cookie firmada de larga
+# duracion. El bloqueo global (muchos fallos desde muchas IPs) no afecta a esos dispositivos,
+# asi que un ataque no puede dejar fuera al dueno; el bloqueo por IP se aplica igual a todos.
+TRUSTED_COOKIE = "golf_trusted"
+TRUSTED_MAX_AGE = 60 * 60 * 24 * 365
+trusted_signer = URLSafeTimedSerializer(SECRET_KEY, salt="trusted-device")
+
+
+def is_trusted(request: Request) -> bool:
+    token = request.cookies.get(TRUSTED_COOKIE)
+    if not token:
+        return False
+    try:
+        trusted_signer.loads(token, max_age=TRUSTED_MAX_AGE)
+        return True
+    except BadSignature:
+        return False
+
+
+def login_locked(ip: str, trusted: bool = False) -> bool:
     now = int(time.time())
     with closing(db()) as con:
         con.execute("DELETE FROM attempts WHERE ts < ?", (now - GLOBAL_WINDOW,))
@@ -146,7 +166,7 @@ def login_locked(ip: str) -> bool:
             "SELECT COUNT(*) FROM attempts WHERE ip = ? AND ts > ?", (ip, now - IP_WINDOW)
         ).fetchone()[0]
         all_fails = con.execute("SELECT COUNT(*) FROM attempts").fetchone()[0]
-    return ip_fails >= IP_MAX_FAILS or all_fails >= GLOBAL_MAX_FAILS
+    return ip_fails >= IP_MAX_FAILS or (all_fails >= GLOBAL_MAX_FAILS and not trusted)
 
 
 def register_fail(ip: str) -> None:
@@ -304,13 +324,16 @@ def login_page(request: Request):
 @app.post("/login")
 def login(request: Request, pin: str = Form(default="")):
     ip = client_ip(request)
-    if login_locked(ip):
+    if login_locked(ip, is_trusted(request)):
         return templates.TemplateResponse(
             request, "login.html", {"error": "Demasiados intentos. Prueba mas tarde."}, status_code=429)
     if re.fullmatch(r"\d{4,8}", pin) and hmac.compare_digest(pin.encode(), APP_PIN.encode()):
         request.session.clear()
         request.session["ok"] = True
-        return RedirectResponse("/", status_code=303)
+        resp = RedirectResponse("/", status_code=303)
+        resp.set_cookie(TRUSTED_COOKIE, trusted_signer.dumps("1"), max_age=TRUSTED_MAX_AGE,
+                        httponly=True, secure=COOKIE_SECURE, samesite="strict")
+        return resp
     register_fail(ip)
     return templates.TemplateResponse(request, "login.html", {"error": "PIN incorrecto"}, status_code=401)
 
