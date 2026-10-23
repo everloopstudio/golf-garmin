@@ -10,6 +10,7 @@ services:
       SECRET_KEY: ${SECRET_KEY:?define SECRET_KEY}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Andorra}
+      GOLFCOURSEAPI_KEY: ${GOLFCOURSEAPI_KEY:-}
     volumes:
       - golf_data:/data
     read_only: true

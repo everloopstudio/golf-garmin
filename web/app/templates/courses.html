@@ -5,7 +5,33 @@
   <h1>Campos</h1>
   <a class="btn" href="/courses/new">Nuevo campo</a>
 </div>
-<p class="muted small">El reloj descarga esta lista al abrir GOLFITO; un campo nuevo aparece la siguiente vez que abras la app.</p>
+<p class="muted small">El reloj descarga esta lista al abrir GOLFITO.</p>
+
+{% if search_enabled %}
+<form class="search" method="get" action="/courses" role="search">
+  <input name="q" value="{{ q }}" maxlength="60" placeholder="Buscar campo por nombre (p. ej. Camiral)" autocomplete="off">
+  <button class="btn" type="submit">Buscar</button>
+</form>
+{% if search_error %}<p class="err">{{ search_error }}</p>{% endif %}
+{% if results is not none %}
+<section class="card">
+  <h2>Resultados para «{{ q }}»</h2>
+  {% if results %}
+  <ul class="rounds">
+    {% for r in results %}
+    <li><a href="/courses/new?gca={{ r.id|urlencode }}">
+      <div><b>{{ r.name }}</b><small>{{ r.place or "Ubicación desconocida" }}</small></div>
+      <div class="muted">Añadir →</div>
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No lo encuentro. Los campos pequeños suelen no estar en el buscador.</p>
+  {% endif %}
+  <p class="small"><a class="link-accent" href="/courses/new?name={{ q|urlencode }}">Crear «{{ q }}» a mano →</a></p>
+</section>
+{% endif %}
+{% endif %}
 <section class="card">
   {% if courses %}
   <ul class="rounds">

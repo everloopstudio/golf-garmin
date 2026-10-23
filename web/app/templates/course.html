@@ -3,6 +3,7 @@
 {% block content %}
 <a class="back" href="/courses">← Campos</a>
 <h1>{{ c.name or "Nuevo campo" }}</h1>
+{% if info %}<p class="info">{{ info }}</p>{% endif %}
 <form class="card course-form" method="post" action="/courses/save">
   {% if c.id %}<input type="hidden" name="id" value="{{ c.id }}">{% endif %}
   <label>Nombre

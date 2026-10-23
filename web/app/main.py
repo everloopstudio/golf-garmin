@@ -4,10 +4,13 @@ import os
 import re
 import sqlite3
 import time
+import urllib.error
+import urllib.request
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request
@@ -26,6 +29,7 @@ DEVICE_TOKEN = os.environ["DEVICE_TOKEN"]
 SECRET_KEY = os.environ["SECRET_KEY"]
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() != "false"
 TZ = ZoneInfo(os.environ.get("APP_TIMEZONE", "Europe/Andorra"))
+GCA_KEY = os.environ.get("GOLFCOURSEAPI_KEY", "").strip()  # opcional: activa el buscador de campos
 
 if len(DEVICE_TOKEN) < 24 or len(SECRET_KEY) < 32:
     raise RuntimeError("DEVICE_TOKEN (>=24) y SECRET_KEY (>=32) deben ser largos y aleatorios")
@@ -396,19 +400,89 @@ def parse_course_form(name: str, holes: str, pars: list[str]):
     return (name, values), None
 
 
-def course_form(request: Request, course: dict, error: Optional[str] = None, status: int = 200):
+def course_form(request: Request, course: dict, error: Optional[str] = None, status: int = 200,
+                info: Optional[str] = None):
     return templates.TemplateResponse(
-        request, "course.html", {"c": course, "error": error}, status_code=status)
+        request, "course.html", {"c": course, "error": error, "info": info}, status_code=status)
+
+
+# ---------- buscador de campos (GolfCourseAPI) ----------
+# Solo cubre bien campos grandes; si no encuentra el campo o no trae pares, se crea a mano.
+
+class GcaError(Exception):
+    pass
+
+
+def gca_get(path: str, params: Optional[dict] = None) -> dict:
+    url = "https://api.golfcourseapi.com/v1" + path + ("?" + urlencode(params) if params else "")
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {GCA_KEY}", "User-Agent": "GOLFITO/0.1"})
+    try:
+        with urllib.request.urlopen(req, timeout=8) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code == 429:
+            raise GcaError("Se ha alcanzado el limite diario de busquedas. Prueba manana.")
+        raise GcaError(f"El buscador ha respondido con un error ({e.code}).")
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        raise GcaError("No se ha podido conectar con el buscador de campos.")
+
+
+def gca_name(c: dict) -> str:
+    club, course = (c.get("club_name") or "").strip(), (c.get("course_name") or "").strip()
+    name = club if not course or course.lower() == club.lower() else f"{club} - {course}"
+    return name[:40].strip()
+
+
+def gca_pars(c: dict) -> Optional[list[int]]:
+    """Pares del primer tee con hoyos (caballeros y si no, damas), recortados a 18 o 9."""
+    tees = c.get("tees") or {}
+    groups = [tees.get(k) for k in ("male", "female")]
+    for tee in [t for g in groups if isinstance(g, list) for t in g]:
+        pars = [h.get("par") for h in tee.get("holes") or []]
+        if len(pars) >= 9 and all(isinstance(p, int) and 2 <= p <= 7 for p in pars):
+            return pars[:18] if len(pars) >= 18 else pars[:9]
+    return None
 
 
 @app.get("/courses")
-def courses_page(request: Request, _: None = Depends(require_login)):
-    return templates.TemplateResponse(request, "courses.html", {"courses": all_courses()})
+def courses_page(request: Request, q: str = "", _: None = Depends(require_login)):
+    q = q.strip()[:60]
+    results, search_error = None, None
+    if q and GCA_KEY:
+        try:
+            found = gca_get("/search", {"search_query": q}).get("courses") or []
+            # la busqueda devuelve el resumen del campo; los pares llegan al elegirlo (detalle)
+            results = []
+            for c in found[:20]:
+                loc = c.get("location") or {}
+                results.append({
+                    "id": str(c.get("id")), "name": gca_name(c),
+                    "place": ", ".join(x for x in (loc.get("city"), loc.get("country")) if x and x != "Unknown"),
+                })
+        except GcaError as e:
+            search_error = str(e)
+    return templates.TemplateResponse(request, "courses.html", {
+        "courses": all_courses(), "q": q, "results": results, "search_error": search_error,
+        "search_enabled": bool(GCA_KEY)})
 
 
 @app.get("/courses/new")
-def course_new(request: Request, _: None = Depends(require_login)):
-    return course_form(request, {"id": None, "name": "", "pars": [3] * 18})
+def course_new(request: Request, gca: str = "", name: str = "",
+               _: None = Depends(require_login)):
+    course = {"id": None, "name": name.strip()[:40], "pars": [3] * 18}
+    if not gca or not GCA_KEY or not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", gca):
+        return course_form(request, course)
+    try:
+        data = gca_get(f"/courses/{gca}")
+    except GcaError as e:
+        return course_form(request, course, info=f"{e} Rellena el campo a mano.")
+    c = data.get("course", data)
+    course["name"] = gca_name(c) or course["name"]
+    pars = gca_pars(c)
+    if pars:
+        course["pars"] = pars
+        return course_form(request, course, info="Datos importados del buscador. Revisalos y guarda.")
+    return course_form(request, course, info="El buscador no tiene los pares de este campo: ponlos a mano.")
 
 
 @app.get("/courses/{cid}")
