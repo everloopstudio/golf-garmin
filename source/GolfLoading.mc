@@ -9,6 +9,7 @@ class LoadingView extends WatchUi.View {
     var timer;
     var angle = 90;
     var bg = null;
+    var logo = null;
 
     function initialize() {
         View.initialize();
@@ -29,7 +30,8 @@ class LoadingView extends WatchUi.View {
     }
 
     // Fondo de estrellas y green (bitmap LoadingBg, ver web/icons/make_icons.py); encima
-    // "GOLFITO" en blanco, "Cargando campos" sobre el green y la ruedita en la esfera pequena.
+    // "GOLFITO" en blanco, "Cargando campos" sobre el green y, en la esfera pequena, el logo
+    // de Everloop con la ruedita girando alrededor.
     function onUpdate(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
@@ -55,11 +57,15 @@ class LoadingView extends WatchUi.View {
         if (sub != null) {
             sx = sub.x + sub.width / 2;
             sy = sub.y + sub.height / 2;
-            sr = sub.width / 2 - 8;
+            sr = sub.width / 2 - 6;
             dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
             dc.fillCircle(sx, sy, sub.width / 2);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawCircle(sx, sy, sub.width / 2 - 1);
+            if (logo == null) {
+                logo = WatchUi.loadResource(Rez.Drawables.EverloopLogo);
+            }
+            dc.drawBitmap(sx - logo.getWidth() / 2, sy - logo.getHeight() / 2, logo);
         }
         dc.setPenWidth(4);
         dc.drawArc(sx, sy, sr, Graphics.ARC_CLOCKWISE, angle, angle - 100);

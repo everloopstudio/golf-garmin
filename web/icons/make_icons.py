@@ -8,6 +8,8 @@ S = 1024
 OUT = Path(__file__).resolve().parent.parent / "app" / "static" / "icons"
 WATCH = Path(__file__).resolve().parents[2] / "resources" / "drawables" / "launcher_icon.png"
 LOADING = WATCH.parent / "loading_bg.png"
+EVERLOOP_SRC = Path(__file__).resolve().parent / "everloop-logo.png"
+EVERLOOP = WATCH.parent / "everloop_logo.png"
 
 
 def lerp(a, b, t):
@@ -145,6 +147,17 @@ def loading_background():
     im.convert("RGB").save(LOADING)
 
 
+def everloop_logo(height=32):
+    """Logo de Everloop en blanco sobre negro para el centro de la esfera pequena del reloj."""
+    src = Image.open(EVERLOOP_SRC).convert("L")
+    # el logo es amarillo sobre gris oscuro: todo lo claro es logo
+    box = src.point(lambda p: 255 if p > 128 else 0).getbbox()
+    logo = src.crop(box)
+    w = round(logo.width * height / logo.height)
+    logo = logo.resize((w, height), Image.LANCZOS).point(lambda p: 255 if p > 110 else 0)
+    logo.convert("RGB").save(EVERLOOP)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     img = background()
@@ -175,6 +188,7 @@ def main():
     w.convert("RGB").save(WATCH)
     img.save(OUT.parent.parent.parent / "icons" / "golfito-1024.png")
     loading_background()
+    everloop_logo()
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
     <bitmap id="LoadingBg" filename="loading_bg.png" dithering="none"/>
+    <bitmap id="EverloopLogo" filename="everloop_logo.png" dithering="none"/>
 </drawables>
