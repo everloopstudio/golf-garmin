@@ -2,7 +2,7 @@
 {% block title %}{{ r.course }} · GOLFITO{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/vendor/leaflet.css">{% endblock %}
 {% block content %}
-<a class="back" href="/">← Rondas</a>
+<a class="back" href="/">← Inicio</a>
 <h1>{{ r.course }}</h1>
 <p class="muted">{{ r.started_at|date }}{% if r.steps %} · {{ r.steps }} pasos{% endif %}{% if r.distance_m %} · {{ "%.1f"|format(r.distance_m / 1000) }} km{% endif %}</p>
 {% if course_rounds > 1 %}<p class="small"><a class="link-accent" href="/stats/course?name={{ r.course|urlencode }}">Ver estadísticas de {{ r.course }} →</a></p>{% endif %}

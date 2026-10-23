@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ name }} · GOLFITO{% endblock %}
 {% block content %}
-<a class="back" href="/">← Inicio</a>
+<a class="back" href="/stats">← Estadísticas</a>
 <h1>{{ name }}</h1>
-<p class="muted">{{ holes_n }} hoyos · par {{ par }}</p>
+<p class="muted">{{ holes_n }} hoyos · par {{ par }}{% if course_id %} · <a class="link-accent" href="/courses/{{ course_id }}">Editar campo</a>{% endif %}</p>
 
 <section class="stats">
   <div class="stat"><span>Rondas</span><b>{{ d.rounds|length }}</b></div>

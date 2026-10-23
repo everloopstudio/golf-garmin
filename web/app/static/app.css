@@ -114,3 +114,9 @@ table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nu
 .holes tr.worst td { background: color-mix(in srgb, var(--pos) 10%, transparent); }
 .holes td, .holes th { text-align: center; }
 .chart-box { position: relative; height: 200px; }
+.nav a.on { color: var(--text); font-weight: 600; }
+@media (max-width: 420px) {
+  .top { padding: 14px 12px; }
+  .brand span { display: none; }
+  .nav { gap: 12px; }
+}

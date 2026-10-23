@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas · GOLFITO{% endblock %}
+{% block content %}
+<h1>Estadísticas</h1>
+<p class="muted small">Los campos que has jugado. Pulsa uno para ver su evolución, tu media por hoyo y tus resultados.</p>
+<section class="card">
+  {% if courses %}
+  <ul class="rounds">
+    {% for c in courses %}
+    <li><a href="/stats/course?name={{ c.name|urlencode }}">
+      <div><b>{{ c.name }}</b><small>{{ c.rounds }} ronda{{ 's' if c.rounds != 1 }}{% if c.best %} · mejor {{ c.best.total }} ({{ c.best.diff|diff }}){% endif %}</small></div>
+      <div class="muted">Ver →</div>
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Aún no has jugado ninguna ronda. Guarda una desde el reloj.</p>
+  {% endif %}
+</section>
+{% endblock %}

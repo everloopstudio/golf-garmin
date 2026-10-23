@@ -329,8 +329,19 @@ def index(request: Request, _: None = Depends(require_login)):
         "rounds": rounds,
         "n_rounds": len(played),
         "averages": stats.size_averages(played),
-        "courses": stats.course_summaries(played),
     })
+
+
+@app.get("/stats")
+def stats_page(request: Request, _: None = Depends(require_login)):
+    played = [r for r in all_rounds() if r["holes_played"] > 0]
+    return templates.TemplateResponse(request, "stats.html", {"courses": stats.course_summaries(played)})
+
+
+def course_id_by_name(name: str) -> Optional[int]:
+    with closing(db()) as con:
+        row = con.execute("SELECT id FROM courses WHERE name = ?", (name,)).fetchone()
+    return row["id"] if row else None
 
 
 @app.get("/stats/course")
@@ -343,7 +354,8 @@ def course_stats(request: Request, name: str = "", _: None = Depends(require_log
         p["label"] = local(p["label"]).strftime("%d/%m")
     latest = max(played, key=lambda r: r["started_at"])
     return templates.TemplateResponse(request, "course_stats.html", {
-        "name": name, "d": detail, "holes_n": len(latest["pars"]), "par": sum(latest["pars"])})
+        "name": name, "d": detail, "holes_n": len(latest["pars"]), "par": sum(latest["pars"]),
+        "course_id": course_id_by_name(name)})
 
 
 @app.get("/rounds/{rid}")
@@ -415,8 +427,12 @@ def parse_course_form(name: str, holes: str, pars: list[str]):
 
 def course_form(request: Request, course: dict, error: Optional[str] = None, status: int = 200,
                 info: Optional[str] = None):
+    played = False
+    if course.get("id") and course.get("name"):
+        with closing(db()) as con:
+            played = con.execute("SELECT 1 FROM rounds WHERE course = ? LIMIT 1", (course["name"],)).fetchone() is not None
     return templates.TemplateResponse(
-        request, "course.html", {"c": course, "error": error, "info": info}, status_code=status)
+        request, "course.html", {"c": course, "error": error, "info": info, "played": played}, status_code=status)
 
 
 # ---------- buscador de campos (GolfCourseAPI) ----------

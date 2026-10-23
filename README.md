@@ -168,10 +168,11 @@ Al **guardar y salir**, se ve un resumen; al pulsar un botón, la ronda se enví
 
 Entra con tu PIN. En el móvil puedes añadirla a la pantalla de inicio (en Safari: Compartir → *Añadir a pantalla de inicio*) y se abre como una app. Para actualizar, desliza hacia abajo desde arriba.
 
-- **Inicio:** resumen (rondas y medias de 9 y 18 hoyos), los campos que has jugado y la lista de rondas.
-- **Ronda:** tarjeta con birdies/bogeys marcados, reparto de resultados, mapa con los golpes (puedes filtrar por hoyo) y lista de golpes con distancias. También puedes **eliminar** la ronda.
-- **Estadísticas de un campo:** mejor ronda, medias, evolución, tu media en cada hoyo (con los hoyos donde más pierdes resaltados) y reparto de resultados.
-- **Campos:** aquí gestionas los campos que salen en el reloj.
+Arriba tienes tres secciones:
+
+- **Inicio:** resumen (rondas y medias de 9 y 18 hoyos) y la lista de tus rondas. Al pulsar una ronda ves su tarjeta con birdies/bogeys marcados, el reparto de resultados, el mapa con los golpes (puedes filtrar por hoyo) y la lista de golpes con distancias. Desde ahí también puedes **eliminar** la ronda.
+- **Estadísticas:** los campos que has jugado. Al pulsar uno ves tu mejor ronda, medias, evolución, tu media en cada hoyo (con los hoyos donde más pierdes resaltados) y el reparto de resultados.
+- **Campos:** aquí gestionas los campos que salen en el reloj (crear, editar, buscar). Que un campo esté aquí no significa que lo hayas jugado, y si borras un campo sus estadísticas no se pierden.
 
 ### Añadir un campo
 
