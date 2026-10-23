@@ -253,4 +253,6 @@ En VS Code, con la carpeta abierta, pulsa **F5** y elige **instinct2**. Se abre 
 
 ## Licencia
 
-[MIT](LICENSE): puedes usarlo, copiarlo y modificarlo libremente, también con fines comerciales, manteniendo el aviso de copyright. Se ofrece tal cual, sin garantías.
+[PolyForm Noncommercial 1.0.0](LICENSE): puedes usarlo, copiarlo, modificarlo y compartirlo **para cualquier fin no comercial** (uso personal, aficiones, pruebas, clubes, asociaciones, centros educativos…). **No está permitido el uso comercial**, por ejemplo venderlo u ofrecerlo como servicio de pago. Si lo compartes, incluye el archivo `LICENSE` con el aviso de copyright. Se ofrece tal cual, sin garantías.
+
+Las librerías incluidas en `web/app/static/vendor/` mantienen sus propias licencias: [Leaflet](https://leafletjs.com) (BSD-2-Clause) y [Chart.js](https://www.chartjs.org) (MIT). Los mapas son de © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright).
