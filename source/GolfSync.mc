@@ -11,6 +11,7 @@ class GolfSync {
     var status = :idle;  // :idle, :sending, :ok, :failed
     var lastCode = null; // ultimo codigo de respuesta (HTTP o error de Garmin, p.ej. -104 = sin movil)
     var onDone = null;   // se llama al terminar la cola de envio, bien o mal
+    var coursesDone = null;
 
     function pending() {
         try {
@@ -83,7 +84,9 @@ class GolfSync {
         return u.substring(0, u.length() - 6) + "courses";
     }
 
-    function fetchCourses() {
+    // done: se llama al terminar la descarga, haya ido bien o no.
+    function fetchCourses(done as Method) as Void {
+        coursesDone = done;
         try {
             Communications.makeWebRequest(coursesUrl(), null, {
                 :method => Communications.HTTP_REQUEST_METHOD_GET,
@@ -91,16 +94,22 @@ class GolfSync {
                 :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
             }, method(:onCourses));
         } catch (e) {
+            coursesDone.invoke();
         }
     }
 
     // Guarda la lista como [[nombre, [pares]], ...], descartando entradas mal formadas.
     function onCourses(code as Number, data as Dictionary or String or Null) as Void {
-        if (code != 200 || !(data instanceof Dictionary) || !(data["courses"] instanceof Array)) {
-            return;
+        if (code == 200 && data instanceof Dictionary && data["courses"] instanceof Array) {
+            storeCourses(data["courses"] as Array);
         }
+        if (coursesDone != null) {
+            coursesDone.invoke();
+        }
+    }
+
+    function storeCourses(src as Array) as Void {
         var list = [];
-        var src = data["courses"] as Array;
         for (var i = 0; i < src.size(); i++) {
             var c = src[i];
             if (c instanceof Dictionary && c["name"] instanceof String && c["pars"] instanceof Array
