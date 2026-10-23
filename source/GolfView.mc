@@ -1,6 +1,5 @@
 using Toybox.Application;
 using Toybox.Graphics;
-using Toybox.Position;
 using Toybox.Timer;
 using Toybox.WatchUi;
 
@@ -60,33 +59,29 @@ class GolfView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
         dc.clear();
 
-        // corona: senal GPS. Guia fina siempre; el arco grueso crece con la calidad (1/4 ... completo).
-        var ringR = cx - 3;
-        dc.setPenWidth(1);
-        dc.drawCircle(cx, h / 2, ringR);
-        var q = model.gpsQuality();
-        dc.setPenWidth(5);
-        if (q >= Position.QUALITY_GOOD) {
-            dc.drawCircle(cx, h / 2, ringR);
-        } else if (q > 0) {
-            dc.drawArc(cx, h / 2, ringR, Graphics.ARC_CLOCKWISE, 90, 90 - 90 * q);
-        }
-        dc.setPenWidth(1);
-
         var holeNo = model.firstHole + model.hole;
         var sub = (WatchUi has :getSubscreen) ? WatchUi.getSubscreen() : null;
         var topCx = cx;
         if (sub != null) {
-            // esfera pequena: fondo negro, "HOYO" y el numero
+            // esfera pequena: fondo negro, par del hoyo y la senal GPS en el borde
             var scx = sub.x + sub.width / 2;
             var scy = sub.y + sub.height / 2;
             dc.fillCircle(scx, scy, sub.width / 2);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(scx, sub.y + sub.height * 0.14, Graphics.FONT_XTINY, "HOYO", Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(scx, sub.y + sub.height * 0.36, Graphics.FONT_MEDIUM, holeNo.toString(), Graphics.TEXT_JUSTIFY_CENTER);
+            // 8 rayas alrededor de la esfera: senal GPS, 2 rayas por nivel (8 = senal buena)
+            var lit = model.gpsQuality() * 2;
+            var segR = sub.width / 2 - 3;
+            for (var i = 0; i < 8; i++) {
+                var start = 90 - i * 45 - 6;
+                dc.setPenWidth(i < lit ? 3 : 1);
+                dc.drawArc(scx, scy, segR, Graphics.ARC_CLOCKWISE, start, start - 33);
+            }
+            dc.setPenWidth(1);
+            dc.drawText(scx, scy, Graphics.FONT_NUMBER_MILD, model.pars[model.hole].toString(),
+                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
             topCx = (w * 0.18 + sub.x) / 2;
-            dc.drawText(topCx, h * 0.09, Graphics.FONT_SMALL, "Par " + model.pars[model.hole], Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(topCx, h * 0.09, Graphics.FONT_SMALL, "Hoyo " + holeNo, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.drawText(cx, h * 0.06, Graphics.FONT_SMALL,
                 "Hoyo " + holeNo + "  Par " + model.pars[model.hole], Graphics.TEXT_JUSTIFY_CENTER);
@@ -117,7 +112,7 @@ class GolfView extends WatchUi.View {
         }
         dc.drawText(cx, h * 0.69, Graphics.FONT_TINY, totalTxt, Graphics.TEXT_JUSTIFY_CENTER);
 
-        // km recorridos (el estado del GPS lo indica la corona)
+        // km recorridos (el estado del GPS lo indican las rayas de la esfera pequena)
         dc.drawText(cx, h * 0.795, Graphics.FONT_XTINY, fmtKm(model.distanceNowM()), Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
