@@ -13,3 +13,5 @@ __pycache__/
 *.pyc
 data/
 mockups/
+# notas personales (no se suben)
+privado/
