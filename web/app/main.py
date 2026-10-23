@@ -20,6 +20,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, field_validator
 from starlette.middleware.sessions import SessionMiddleware
 
+from . import stats
+
 BASE = Path(__file__).parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
 DB_PATH = DATA_DIR / "golf.db"
@@ -323,21 +325,25 @@ def logout(request: Request):
 def index(request: Request, _: None = Depends(require_login)):
     rounds = all_rounds()
     played = [r for r in rounds if r["holes_played"] > 0]
-    stats = {
-        "rounds": len(played),
-        "best": min(played, key=lambda r: r["diff"]) if played else None,
-        "avg_diff": (sum(r["diff"] for r in played) / len(played)) if played else None,
-        "avg_shot": None,
-    }
-    dists = [r["avg_shot"] for r in played if r["avg_shot"] is not None]
-    if dists:
-        stats["avg_shot"] = sum(dists) / len(dists)
-    chart = [
-        {"label": local(r["started_at"]).strftime("%d/%m"), "diff": r["diff"]}
-        for r in reversed(played)
-    ]
-    return templates.TemplateResponse(
-        request, "index.html", {"rounds": rounds, "stats": stats, "chart": chart})
+    return templates.TemplateResponse(request, "index.html", {
+        "rounds": rounds,
+        "n_rounds": len(played),
+        "averages": stats.size_averages(played),
+        "courses": stats.course_summaries(played),
+    })
+
+
+@app.get("/stats/course")
+def course_stats(request: Request, name: str = "", _: None = Depends(require_login)):
+    played = [r for r in all_rounds() if r["holes_played"] > 0 and r["course"] == name]
+    if not played:
+        raise HTTPException(status_code=404)
+    detail = stats.course_detail(played)
+    for p in detail["chart"]:
+        p["label"] = local(p["label"]).strftime("%d/%m")
+    latest = max(played, key=lambda r: r["started_at"])
+    return templates.TemplateResponse(request, "course_stats.html", {
+        "name": name, "d": detail, "holes_n": len(latest["pars"]), "par": sum(latest["pars"])})
 
 
 @app.get("/rounds/{rid}")
@@ -348,7 +354,14 @@ def round_page(request: Request, rid: str, _: None = Depends(require_login)):
         r = load_round(con, rid)
     if r is None:
         raise HTTPException(status_code=404)
-    return templates.TemplateResponse(request, "round.html", {"r": r})
+    # medias por hoyo en ese campo, para marcar los hoyos en los que mejoraste tu media
+    same = [x for x in all_rounds() if x["course"] == r["course"] and x["holes_played"] > 0]
+    avgs = stats.hole_averages(same)
+    for h in r["per_hole"]:
+        a = avgs.get(h["hole"])
+        h["better"] = bool(a and a["played"] > 1 and 0 < h["strokes"] < a["avg"])
+    return templates.TemplateResponse(request, "round.html", {
+        "r": r, "breakdown": stats.breakdown([r]), "course_rounds": len(same)})
 
 
 def same_origin(request: Request) -> None:

@@ -5,6 +5,7 @@
 <a class="back" href="/">← Rondas</a>
 <h1>{{ r.course }}</h1>
 <p class="muted">{{ r.started_at|date }}{% if r.steps %} · {{ r.steps }} pasos{% endif %}{% if r.distance_m %} · {{ "%.1f"|format(r.distance_m / 1000) }} km{% endif %}</p>
+{% if course_rounds > 1 %}<p class="small"><a class="link-accent" href="/stats/course?name={{ r.course|urlencode }}">Ver estadísticas de {{ r.course }} →</a></p>{% endif %}
 
 <section class="stats">
   <div class="stat"><span>Golpes</span><b>{{ r.total }}</b></div>
@@ -22,12 +23,20 @@
     <tr><th>Par</th>{% for h in chunk %}<td>{{ h.par }}</td>{% endfor %}<td>{{ chunk|sum(attribute='par') }}</td></tr>
     <tr><th>Golpes</th>{% for h in chunk %}
       {% set d = h.strokes - h.par %}
-      <td>{% if h.strokes %}<span class="mark {{ 'eagle' if d <= -2 else 'birdie' if d == -1 else 'par' if d == 0 else 'bogey' if d == 1 else 'dbl' }}">{{ h.strokes }}</span>{% else %}·{% endif %}</td>
+      <td>{% if h.strokes %}<span class="mark {{ 'eagle' if d <= -2 else 'birdie' if d == -1 else 'par' if d == 0 else 'bogey' if d == 1 else 'dbl' }}{{ ' better' if h.better }}"{% if h.better %} title="Mejor que tu media en este hoyo"{% endif %}>{{ h.strokes }}</span>{% else %}·{% endif %}</td>
     {% endfor %}<td><b>{{ chunk|sum(attribute='strokes') }}</b></td></tr>
   </table>
   </div>
   {% endfor %}
+  {% if r.per_hole|selectattr('better')|list %}<p class="muted small"><span class="dot-better"></span> Mejor que tu media en ese hoyo.</p>{% endif %}
 </section>
+
+{% if breakdown %}
+<section class="card">
+  <h2>Resultados</h2>
+  {% with items = breakdown %}{% include "_breakdown.html" %}{% endwith %}
+</section>
+{% endif %}
 
 <section class="card">
   <h2>Mapa</h2>

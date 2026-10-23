@@ -14,6 +14,7 @@
       }]
     },
     options: {
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: text }, grid: { display: false } },

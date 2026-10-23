@@ -97,3 +97,20 @@ table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nu
 .right { text-align: right; }
 .link-accent { color: var(--accent); font-weight: 600; }
 .info { background: var(--accent-soft); color: var(--text); border-radius: 10px; padding: 10px 14px; margin: 12px 0 0; font-size: 0.92rem; }
+.mark.better { position: relative; }
+.mark.better::after, .dot-better { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.mark.better::after { position: absolute; top: -3px; right: -3px; }
+.breakdown { display: flex; flex-direction: column; gap: 10px; }
+.bd-row { display: grid; grid-template-columns: 130px 1fr 32px; align-items: center; gap: 10px; font-size: 0.9rem; }
+.bd-label { display: flex; align-items: center; gap: 8px; }
+.bd-label .mark { width: 16px; height: 16px; font-size: 0; }
+.bd-label .mark.par { border: 1.5px solid var(--line); }
+.bd-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bd-bar i { display: block; height: 100%; border-radius: 4px; background: var(--muted); }
+.bd-bar .bd-eagle, .bd-bar .bd-birdie { background: var(--accent); }
+.bd-bar .bd-bogey, .bd-bar .bd-dbl { background: var(--pos); }
+.bd-bar .bd-dbl { opacity: 0.7; }
+.bd-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.holes tr.worst td { background: color-mix(in srgb, var(--pos) 10%, transparent); }
+.holes td, .holes th { text-align: center; }
+.chart-box { position: relative; height: 200px; }

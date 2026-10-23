@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ name }} · GOLFITO{% endblock %}
+{% block content %}
+<a class="back" href="/">← Inicio</a>
+<h1>{{ name }}</h1>
+<p class="muted">{{ holes_n }} hoyos · par {{ par }}</p>
+
+<section class="stats">
+  <div class="stat"><span>Rondas</span><b>{{ d.rounds|length }}</b></div>
+  {% for b in d.bests %}
+  <div class="stat"><span>Mejor{% if d.bests|length > 1 %} {{ b.holes }} h{% endif %}</span><b>{{ b.round.total }} <small>({{ b.round.diff|diff }})</small></b></div>
+  {% endfor %}
+  {% for a in d.averages %}
+  <div class="stat"><span>Media{% if d.averages|length > 1 %} {{ a.holes }} h{% endif %}</span><b>{{ "%.1f"|format(a.total) }} <small>({{ "%+.1f"|format(a.diff) }})</small></b></div>
+  {% endfor %}
+  {% if d.avg_shot %}<div class="stat"><span>Golpe medio</span><b>{{ d.avg_shot|round|int }} m</b></div>{% endif %}
+</section>
+{% if not d.averages %}<p class="muted small">Las medias y la mejor ronda solo cuentan rondas completas; aún no hay ninguna en este campo.</p>{% endif %}
+
+{% if d.chart|length > 1 %}
+<section class="card">
+  <h2>Evolución{% if d.bests|length > 1 %} · rondas de {{ d.chart_holes }} hoyos{% endif %}</h2>
+  <div class="chart-box"><canvas id="evo"></canvas></div>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Por hoyo</h2>
+  <div class="scroll">
+  <table class="list holes">
+    <tr><th>Hoyo</th><th>Par</th><th>Media</th><th>vs par</th><th>Mejor</th></tr>
+    {% for h in d.holes %}
+    <tr class="{{ 'worst' if h.worst }}">
+      <td>{{ h.hole }}</td><td>{{ h.par }}</td><td>{{ "%.1f"|format(h.avg) }}</td>
+      <td class="{{ 'neg' if h.diff < 0 else 'pos' if h.diff > 0 else '' }}">{{ "%+.1f"|format(h.diff) }}</td>
+      <td>{{ h.best }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% if d.holes|selectattr('worst')|list %}<p class="muted small">Resaltados: los hoyos donde más golpes pierdes de media.</p>{% endif %}
+</section>
+
+{% if d.breakdown %}
+<section class="card">
+  <h2>Resultados por hoyo</h2>
+  {% with items = d.breakdown %}{% include "_breakdown.html" %}{% endwith %}
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Rondas en este campo</h2>
+  <ul class="rounds">
+    {% for r in d.rounds %}
+    <li><a href="/rounds/{{ r.id }}">
+      {% set partial = r.holes_played < r.pars|length %}
+      <div><b>{{ r.started_at|date }}</b><small>{{ r.holes_played }} de {{ r.pars|length }} hoyos{% if partial %} · incompleta{% endif %}</small></div>
+      <div class="score">{{ r.total }}<small class="{{ '' if partial else 'neg' if r.diff < 0 else 'pos' if r.diff > 0 else '' }}">{{ r.diff|diff }}</small></div>
+    </a></li>
+    {% endfor %}
+  </ul>
+</section>
+<script type="application/json" id="chart-data">{{ d.chart|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+{% if d.chart|length > 1 %}
+<script src="/static/vendor/chart.umd.min.js"></script>
+<script src="/static/evolution.js"></script>
+{% endif %}
+{% endblock %}

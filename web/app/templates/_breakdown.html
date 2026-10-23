@@ -1,0 +1,10 @@
+{# Reparto de resultados por hoyo (birdies, pares, bogeys...). Recibe "items". #}
+<div class="breakdown">
+  {% for b in items %}
+  <div class="bd-row">
+    <span class="bd-label"><span class="mark {{ b.key }}">&nbsp;</span>{{ b.label }}</span>
+    <span class="bd-bar"><i class="bd-{{ b.key }}" style="width: {{ [b.pct, 2]|max }}%"></i></span>
+    <span class="bd-n">{{ b.n }}</span>
+  </div>
+  {% endfor %}
+</div>
