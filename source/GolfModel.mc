@@ -72,6 +72,15 @@ class GolfModel {
         return currentLoc() != null;
     }
 
+    // Calidad de la senal GPS: 0 sin senal ... 4 (Position.QUALITY_GOOD) buena.
+    function gpsQuality() {
+        var info = Position.getInfo();
+        if (info == null || info.accuracy == null) {
+            return 0;
+        }
+        return info.accuracy;
+    }
+
     function distanceM(lat1, lon1, lat2, lon2) {
         var p1 = Math.toRadians(lat1);
         var p2 = Math.toRadians(lat2);

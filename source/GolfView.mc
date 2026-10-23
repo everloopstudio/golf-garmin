@@ -1,5 +1,6 @@
 using Toybox.Application;
 using Toybox.Graphics;
+using Toybox.Position;
 using Toybox.Timer;
 using Toybox.WatchUi;
 
@@ -59,6 +60,19 @@ class GolfView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
         dc.clear();
 
+        // corona: senal GPS. Guia fina siempre; el arco grueso crece con la calidad (1/4 ... completo).
+        var ringR = cx - 3;
+        dc.setPenWidth(1);
+        dc.drawCircle(cx, h / 2, ringR);
+        var q = model.gpsQuality();
+        dc.setPenWidth(5);
+        if (q >= Position.QUALITY_GOOD) {
+            dc.drawCircle(cx, h / 2, ringR);
+        } else if (q > 0) {
+            dc.drawArc(cx, h / 2, ringR, Graphics.ARC_CLOCKWISE, 90, 90 - 90 * q);
+        }
+        dc.setPenWidth(1);
+
         var holeNo = model.firstHole + model.hole;
         var sub = (WatchUi has :getSubscreen) ? WatchUi.getSubscreen() : null;
         var topCx = cx;
@@ -82,7 +96,7 @@ class GolfView extends WatchUi.View {
         dc.drawText(cx, h * 0.225, Graphics.FONT_NUMBER_THAI_HOT,
             model.strokes[model.hole].toString(), Graphics.TEXT_JUSTIFY_CENTER);
 
-        var sepY = h * 0.615;
+        var sepY = h * 0.585;
         dc.drawLine(w * 0.25, sepY, w * 0.75, sepY);
 
         // distancia: en vivo desde el ultimo golpe, o la del ultimo golpe medido
@@ -93,7 +107,7 @@ class GolfView extends WatchUi.View {
         } else if (model.lastShotDist != null) {
             distTxt = "Golpe ant.  " + fmtMeters(model.lastShotDist);
         }
-        dc.drawText(cx, h * 0.625, Graphics.FONT_XTINY, distTxt, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, h * 0.595, Graphics.FONT_XTINY, distTxt, Graphics.TEXT_JUSTIFY_CENTER);
 
         var total = model.totalStrokes();
         var played = model.playedPar();
@@ -101,21 +115,10 @@ class GolfView extends WatchUi.View {
         if (played > 0) {
             totalTxt = totalTxt + " (" + fmtDiff(total, played) + ")";
         }
-        dc.drawText(cx, h * 0.735, Graphics.FONT_TINY, totalTxt, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, h * 0.69, Graphics.FONT_TINY, totalTxt, Graphics.TEXT_JUSTIFY_CENTER);
 
-        // GPS (punto lleno = ok, vacio = buscando) y km recorridos
-        var gps = model.gpsOk();
-        var info = (gps ? "GPS  " : "GPS...  ") + fmtKm(model.distanceNowM());
-        var infoW = dc.getTextWidthInPixels(info, Graphics.FONT_XTINY);
-        var dotX = cx - infoW / 2 - 5;
-        var infoY = h * 0.86;
-        var dotY = infoY + dc.getFontHeight(Graphics.FONT_XTINY) / 2;
-        if (gps) {
-            dc.fillCircle(dotX, dotY, 3);
-        } else {
-            dc.drawCircle(dotX, dotY, 3);
-        }
-        dc.drawText(cx + 4, infoY, Graphics.FONT_XTINY, info, Graphics.TEXT_JUSTIFY_CENTER);
+        // km recorridos (el estado del GPS lo indica la corona)
+        dc.drawText(cx, h * 0.795, Graphics.FONT_XTINY, fmtKm(model.distanceNowM()), Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
 
