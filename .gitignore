@@ -1,11 +1,15 @@
 # secretos
 .env
 source/Secrets.mc
+developer_key*
+*.der
+*.pem
 # compilados y datos locales
 bin/
 *.prg
 *.iq
 __pycache__/
+.venv/
 *.pyc
 data/
 mockups/
