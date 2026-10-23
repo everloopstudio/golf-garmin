@@ -101,16 +101,16 @@ init_db()
 async def security_headers(request: Request, call_next):
     resp = await call_next(request)
     resp.headers["Content-Security-Policy"] = (
-        "default-src 'self'; img-src 'self' data: https://*.tile.openstreetmap.org; "
+        "default-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; "
         "style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; "
         "base-uri 'none'; form-action 'self'"
     )
     resp.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["X-Frame-Options"] = "DENY"
-    # same-origin (no no-referrer): con no-referrer el navegador manda "Origin: null" en los
-    # formularios y same_origin() rechazaria acciones legitimas como eliminar una ronda.
-    resp.headers["Referrer-Policy"] = "same-origin"
+    # Solo el origen hacia fuera: OpenStreetMap exige Referer para servir las teselas, y con
+    # no-referrer el navegador manda "Origin: null" y same_origin() rechazaria los formularios.
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     resp.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
     if request.url.path.startswith("/api/") or request.url.path in ("/login", "/"):
         resp.headers["Cache-Control"] = "no-store"
