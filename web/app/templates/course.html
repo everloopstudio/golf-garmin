@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name or "Nuevo campo" }} · GOLFITO{% endblock %}
+{% block content %}
+<a class="back" href="/courses">← Campos</a>
+<h1>{{ c.name or "Nuevo campo" }}</h1>
+<form class="card course-form" method="post" action="/courses/save">
+  {% if c.id %}<input type="hidden" name="id" value="{{ c.id }}">{% endif %}
+  <label>Nombre
+    <input name="name" value="{{ c.name }}" maxlength="40" required autocomplete="off">
+  </label>
+  <fieldset class="seg" id="holes">
+    <legend>Hoyos</legend>
+    <label><input type="radio" name="holes" value="9" {{ 'checked' if c.pars|length == 9 }}> 9</label>
+    <label><input type="radio" name="holes" value="18" {{ 'checked' if c.pars|length != 9 }}> 18</label>
+  </fieldset>
+  <div class="pars">
+    {% for i in range(18) %}
+    <label class="par{{ ' back9' if i >= 9 }}"><span>{{ i + 1 }}</span>
+      <input name="par" type="number" inputmode="numeric" min="2" max="7" required
+             value="{{ c.pars[i] if i < c.pars|length else 3 }}">
+    </label>
+    {% endfor %}
+  </div>
+  <p class="muted small">Par total: <b id="par-total"></b></p>
+  {% if error %}<p class="err">{{ error }}</p>{% endif %}
+  <button class="btn" type="submit">Guardar</button>
+</form>
+{% if c.id %}
+<form class="danger" method="post" action="/courses/{{ c.id }}/delete"
+      data-confirm="¿Eliminar este campo? El reloj dejará de mostrarlo. Las rondas jugadas no se borran.">
+  <button type="submit">Eliminar campo</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="/static/course.js"></script>{% endblock %}

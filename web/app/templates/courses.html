@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Campos · GOLFITO{% endblock %}
+{% block content %}
+<div class="head-row">
+  <h1>Campos</h1>
+  <a class="btn" href="/courses/new">Nuevo campo</a>
+</div>
+<p class="muted small">El reloj descarga esta lista al abrir GOLFITO; un campo nuevo aparece la siguiente vez que abras la app.</p>
+<section class="card">
+  {% if courses %}
+  <ul class="rounds">
+    {% for c in courses %}
+    <li><a href="/courses/{{ c.id }}">
+      <div><b>{{ c.name }}</b><small>{{ c.pars|length }} hoyos · par {{ c.pars|sum }}</small></div>
+      <div class="muted">Editar →</div>
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No hay campos. El reloj usará los que trae de serie.</p>
+  {% endif %}
+</section>
+{% endblock %}

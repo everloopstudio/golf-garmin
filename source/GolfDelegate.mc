@@ -141,7 +141,7 @@ class CourseMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     function onSelect(item) {
-        var course = getCourses()[item.getId()];
+        var course = Application.getApp().courses[item.getId()];
         var pars = course[1];
         if (pars.size() <= 9) {
             startRound(course[0], pars, 1);

@@ -70,3 +70,24 @@ table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nu
 .danger button { background: none; border: 1px solid var(--line); color: var(--pos); font: inherit; font-size: 0.9rem;
   padding: 10px 18px; border-radius: 10px; cursor: pointer; }
 .danger button:hover { border-color: var(--pos); }
+.nav { display: flex; align-items: center; gap: 16px; }
+.nav a { color: var(--muted); font-size: 0.95rem; }
+.head-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.head-row h1 { margin: 0; }
+.btn { display: inline-block; background: var(--accent); color: var(--card); border: 0; border-radius: 10px;
+  padding: 9px 16px; font: inherit; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+.course-form { display: flex; flex-direction: column; gap: 16px; }
+.course-form > label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 0.85rem; }
+.course-form input[name=name] { font: inherit; font-size: 1.05rem; color: var(--text); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.seg { border: 0; padding: 0; margin: 0; display: flex; gap: 8px; align-items: center; }
+.seg legend { color: var(--muted); font-size: 0.85rem; float: left; margin-right: 8px; }
+.seg label { border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px; cursor: pointer; }
+.seg label:has(input:checked) { background: var(--accent); border-color: var(--accent); color: var(--card); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.pars { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; }
+.par { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.par span { color: var(--muted); font-size: 0.75rem; }
+.par input { width: 100%; font: inherit; font-size: 1.1rem; text-align: center; color: var(--text); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 0; }
+.par[hidden] { display: none; }

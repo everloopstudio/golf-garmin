@@ -87,8 +87,18 @@ def init_db() -> None:
                 ip TEXT NOT NULL,
                 ts INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS courses (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                pars TEXT NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
             """
         )
+        if con.execute("SELECT COUNT(*) FROM courses").fetchone()[0] == 0:
+            # mismo campo que trae el reloj de serie (source/GolfCourses.mc)
+            con.execute("INSERT INTO courses (name, pars, updated_at) VALUES (?, ?, ?)",
+                        ("Valls d'Ordino", json.dumps([3] * 18), int(time.time())))
         con.commit()
 
 
@@ -186,14 +196,17 @@ class RoundIn(BaseModel):
         return v
 
 
+def require_device(x_device_token: str = Header(default="")) -> None:
+    if not hmac.compare_digest(x_device_token.encode(), DEVICE_TOKEN.encode()):
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+
 @app.post("/api/rounds")
 async def ingest(
     request: Request,
-    x_device_token: str = Header(default=""),
     _: None = Depends(ingest_rate_limit),
+    __: None = Depends(require_device),
 ):
-    if not hmac.compare_digest(x_device_token.encode(), DEVICE_TOKEN.encode()):
-        raise HTTPException(status_code=401, detail="unauthorized")
     body = await request.body()
     if len(body) > MAX_BODY:
         raise HTTPException(status_code=413, detail="too large")
@@ -216,6 +229,14 @@ async def ingest(
         )
         con.commit()
     return JSONResponse({"ok": True, "shots": len(rnd.shots)})
+
+
+@app.get("/api/courses")
+def api_courses(_: None = Depends(ingest_rate_limit), __: None = Depends(require_device)):
+    # Lista compacta para el reloj: [{"name", "pars"}], ordenada por nombre.
+    with closing(db()) as con:
+        rows = con.execute("SELECT name, pars FROM courses ORDER BY name COLLATE NOCASE").fetchall()
+    return JSONResponse({"courses": [{"name": r["name"], "pars": json.loads(r["pars"])} for r in rows]})
 
 
 # ---------- estadisticas ----------
@@ -347,6 +368,95 @@ def delete_round(
         con.execute("DELETE FROM rounds WHERE id = ?", (rid,))  # los golpes caen en cascada
         con.commit()
     return RedirectResponse("/", status_code=303)
+
+
+# ---------- campos ----------
+
+def all_courses():
+    with closing(db()) as con:
+        rows = [dict(r) for r in con.execute("SELECT * FROM courses ORDER BY name COLLATE NOCASE")]
+    for r in rows:
+        r["pars"] = json.loads(r["pars"])
+    return rows
+
+
+def parse_course_form(name: str, holes: str, pars: list[str]):
+    name = name.strip()
+    if not 1 <= len(name) <= 40:
+        return None, "El nombre debe tener entre 1 y 40 caracteres."
+    if holes not in ("9", "18"):
+        return None, "Elige 9 o 18 hoyos."
+    n = int(holes)
+    try:
+        values = [int(p) for p in pars[:n]]
+    except ValueError:
+        return None, "Los pares deben ser numeros."
+    if len(values) != n or any(p < 2 or p > 7 for p in values):
+        return None, "Cada hoyo necesita un par entre 2 y 7."
+    return (name, values), None
+
+
+def course_form(request: Request, course: dict, error: Optional[str] = None, status: int = 200):
+    return templates.TemplateResponse(
+        request, "course.html", {"c": course, "error": error}, status_code=status)
+
+
+@app.get("/courses")
+def courses_page(request: Request, _: None = Depends(require_login)):
+    return templates.TemplateResponse(request, "courses.html", {"courses": all_courses()})
+
+
+@app.get("/courses/new")
+def course_new(request: Request, _: None = Depends(require_login)):
+    return course_form(request, {"id": None, "name": "", "pars": [3] * 18})
+
+
+@app.get("/courses/{cid}")
+def course_edit(request: Request, cid: int, _: None = Depends(require_login)):
+    c = next((c for c in all_courses() if c["id"] == cid), None)
+    if c is None:
+        raise HTTPException(status_code=404)
+    return course_form(request, c)
+
+
+@app.post("/courses/save")
+async def course_save(
+    request: Request,
+    _: None = Depends(require_login), __: None = Depends(same_origin),
+):
+    form = await request.form()
+    cid = form.get("id") or None
+    parsed, error = parse_course_form(
+        str(form.get("name", "")), str(form.get("holes", "")), [str(v) for v in form.getlist("par")])
+    if error:
+        draft = {"id": cid, "name": form.get("name", ""),
+                 "pars": [int(v) if str(v).isdigit() else 3 for v in form.getlist("par")]}
+        return course_form(request, draft, error, status=422)
+    name, pars = parsed
+    try:
+        with closing(db()) as con:
+            if cid:
+                con.execute("UPDATE courses SET name = ?, pars = ?, updated_at = ? WHERE id = ?",
+                            (name, json.dumps(pars), int(time.time()), int(cid)))
+            else:
+                con.execute("INSERT INTO courses (name, pars, updated_at) VALUES (?, ?, ?)",
+                            (name, json.dumps(pars), int(time.time())))
+            con.commit()
+    except sqlite3.IntegrityError:
+        return course_form(request, {"id": cid, "name": name, "pars": pars},
+                           "Ya existe un campo con ese nombre.", status=422)
+    return RedirectResponse("/courses", status_code=303)
+
+
+@app.post("/courses/{cid}/delete")
+def course_delete(
+    request: Request, cid: int,
+    _: None = Depends(require_login), __: None = Depends(same_origin),
+):
+    with closing(db()) as con:
+        con.execute("DELETE FROM courses WHERE id = ?", (cid,))
+        con.commit()
+    return RedirectResponse("/courses", status_code=303)
 
 
 @app.get("/favicon.ico")

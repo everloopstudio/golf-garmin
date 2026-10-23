@@ -77,6 +77,45 @@ class GolfSync {
         WatchUi.requestUpdate();
     }
 
+    // La API de campos cuelga del mismo servidor que la de rondas: .../api/rounds -> .../api/courses
+    function coursesUrl() {
+        var u = webhookUrl();
+        return u.substring(0, u.length() - 6) + "courses";
+    }
+
+    function fetchCourses() {
+        try {
+            Communications.makeWebRequest(coursesUrl(), null, {
+                :method => Communications.HTTP_REQUEST_METHOD_GET,
+                :headers => { "X-Device-Token" => deviceToken() },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            }, method(:onCourses));
+        } catch (e) {
+        }
+    }
+
+    // Guarda la lista como [[nombre, [pares]], ...], descartando entradas mal formadas.
+    function onCourses(code as Number, data as Dictionary or String or Null) as Void {
+        if (code != 200 || !(data instanceof Dictionary) || !(data["courses"] instanceof Array)) {
+            return;
+        }
+        var list = [];
+        var src = data["courses"] as Array;
+        for (var i = 0; i < src.size(); i++) {
+            var c = src[i];
+            if (c instanceof Dictionary && c["name"] instanceof String && c["pars"] instanceof Array
+                    && (c["pars"] as Array).size() > 0) {
+                list.add([c["name"], c["pars"]]);
+            }
+        }
+        if (list.size() > 0) {
+            try {
+                Application.Storage.setValue("courses", list);
+            } catch (e) {
+            }
+        }
+    }
+
     function finishQueue() {
         if (onDone != null) {
             var d = onDone;
