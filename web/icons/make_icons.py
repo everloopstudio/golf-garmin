@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFilter
 S = 1024
 OUT = Path(__file__).resolve().parent.parent / "app" / "static" / "icons"
 WATCH = Path(__file__).resolve().parents[2] / "resources" / "drawables" / "launcher_icon.png"
+LOADING = WATCH.parent / "loading_bg.png"
 
 
 def lerp(a, b, t):
@@ -100,6 +101,50 @@ def flag(img):
     d.ellipse((x0 - 36, y0 + int(S * 0.36) - 10, x0 + 50, y0 + int(S * 0.36) + 18), fill=(16, 58, 37))
 
 
+def loading_background():
+    """Fondo de la pantalla de carga del reloj (176x176, blanco y negro): cielo con estrellas,
+    green con bandera y bola. Los textos y la ruedita los dibuja la app."""
+    import random
+
+    w = 176
+    sub_x, sub_h = 113, 63          # esfera pequena del Instinct 2 (arriba a la derecha)
+    im = Image.new("1", (w, w), 0)
+    d = ImageDraw.Draw(im)
+    green = lambda x: 124 + 9 * math.cos((x - 120) / 70)
+
+    random.seed(7)
+    for _ in range(30):
+        x, y = random.randint(14, 160), random.randint(10, 110)
+        near_text = 58 <= y <= 94          # franja de "GOLFITO"
+        in_sub = x > sub_x - 6 and y < sub_h + 6
+        near_flag = x > 100 and y > 80
+        if not (near_text or in_sub or near_flag):
+            d.point((x, y), fill=1)
+            if random.random() < 0.18:     # alguna estrella mas grande
+                d.point([(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)], fill=1)
+
+    curve = [(x, green(x)) for x in range(0, w + 1, 2)]
+    d.polygon(curve + [(w, w), (0, w)], fill=1)
+    for x, y in curve[::3]:                # collarin punteado del green
+        d.point((x, y - 3), fill=1)
+
+    hx = 128
+    hy = green(hx)
+    d.ellipse((hx - 8, hy + 1, hx + 8, hy + 6), fill=0)
+    d.line((hx, hy + 3, hx, hy - 36), fill=1, width=2)
+    d.polygon([(hx - 1, hy - 36), (hx - 26, hy - 30), (hx - 20, hy - 26), (hx - 1, hy - 22)], fill=1)
+
+    bx = 56
+    by = green(bx) + 2
+    d.ellipse((bx - 5, by - 5, bx + 5, by + 5), fill=1, outline=0)
+    for dx, dy in [(-2, -2), (2, -2), (0, 1), (-3, 2), (3, 2)]:
+        d.point((bx + dx, by + dy), fill=0)
+    for gap in (10, 16, 22):               # rastro de la bola
+        d.point((bx - gap, green(bx - gap) + 3), fill=0)
+
+    im.convert("RGB").save(LOADING)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     img = background()
@@ -129,6 +174,7 @@ def main():
     d.arc((5, 5, 56, 56), 200, 250, fill=0)  # brillo: corte arriba a la izquierda
     w.convert("RGB").save(WATCH)
     img.save(OUT.parent.parent.parent / "icons" / "golfito-1024.png")
+    loading_background()
 
 
 if __name__ == "__main__":

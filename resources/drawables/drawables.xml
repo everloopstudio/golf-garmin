@@ -1,3 +1,4 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+    <bitmap id="LoadingBg" filename="loading_bg.png" dithering="none"/>
 </drawables>

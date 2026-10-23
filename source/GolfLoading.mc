@@ -8,6 +8,7 @@ class LoadingView extends WatchUi.View {
 
     var timer;
     var angle = 90;
+    var bg = null;
 
     function initialize() {
         View.initialize();
@@ -27,30 +28,42 @@ class LoadingView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 
+    // Fondo de estrellas y green (bitmap LoadingBg, ver web/icons/make_icons.py); encima
+    // "GOLFITO" en blanco, "Cargando campos" sobre el green y la ruedita en la esfera pequena.
     function onUpdate(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
         var cx = w / 2;
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
-        // la ruedita va dentro de la esfera pequena si el reloj la tiene; si no, en el centro
+        if (bg == null) {
+            bg = WatchUi.loadResource(Rez.Drawables.LoadingBg);
+        }
+        dc.drawBitmap(0, 0, bg);
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, h * 0.33, Graphics.FONT_LARGE, "GOLFITO", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, h * 0.82, Graphics.FONT_XTINY, "Cargando campos", Graphics.TEXT_JUSTIFY_CENTER);
+
+        // ruedita: en la esfera pequena si el reloj la tiene; si no, centrada arriba
         var sub = (WatchUi has :getSubscreen) ? WatchUi.getSubscreen() : null;
         var sx = cx;
-        var sy = h * 0.30;
-        var sr = 16;
+        var sy = h * 0.20;
+        var sr = 14;
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         if (sub != null) {
             sx = sub.x + sub.width / 2;
             sy = sub.y + sub.height / 2;
             sr = sub.width / 2 - 8;
+            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
             dc.fillCircle(sx, sy, sub.width / 2);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawCircle(sx, sy, sub.width / 2 - 1);
         }
         dc.setPenWidth(4);
         dc.drawArc(sx, sy, sr, Graphics.ARC_CLOCKWISE, angle, angle - 100);
         dc.setPenWidth(1);
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, h * 0.46, Graphics.FONT_MEDIUM, "GOLFITO", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(cx, h * 0.66, Graphics.FONT_XTINY, "Cargando campos", Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
 
