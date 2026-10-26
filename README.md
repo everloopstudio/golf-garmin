@@ -172,7 +172,7 @@ Entra con tu PIN. En el móvil puedes añadirla a la pantalla de inicio (en Safa
 
 Arriba tienes tres secciones:
 
-- **Inicio:** resumen (rondas y medias de 9 y 18 hoyos) y la lista de tus rondas. Al pulsar una ronda ves su tarjeta con birdies/bogeys marcados, el reparto de resultados, el mapa con los golpes (puedes filtrar por hoyo) y la lista de golpes con distancias. Desde ahí también puedes **eliminar** la ronda.
+- **Inicio:** resumen (rondas y medias de 9 y 18 hoyos) y la lista de tus rondas. Al pulsar una ronda ves su tarjeta con birdies/bogeys marcados, el reparto de resultados, el mapa con los golpes (en vista de mapa o satélite, y puedes filtrar por hoyo) y la lista de golpes con lo que voló cada uno. Desde ahí también puedes **eliminar** la ronda.
 - **Estadísticas:** los campos que has jugado. Al pulsar uno ves tu mejor ronda, medias, evolución, tu media en cada hoyo (con los hoyos donde más pierdes resaltados) y el reparto de resultados.
 - **Campos:** aquí gestionas los campos que salen en el reloj (crear, editar, buscar). Que un campo esté aquí no significa que lo hayas jugado, y si borras un campo sus estadísticas no se pierden.
 
@@ -255,4 +255,4 @@ En VS Code, con la carpeta abierta, pulsa **F5** y elige **instinct2**. Se abre 
 
 [PolyForm Noncommercial 1.0.0](LICENSE): puedes usarlo, copiarlo, modificarlo y compartirlo **para cualquier fin no comercial** (uso personal, aficiones, pruebas, clubes, asociaciones, centros educativos…). **No está permitido el uso comercial**, por ejemplo venderlo u ofrecerlo como servicio de pago. Si lo compartes, incluye el archivo `LICENSE` con el aviso de copyright. Se ofrece tal cual, sin garantías.
 
-Las librerías incluidas en `web/app/static/vendor/` mantienen sus propias licencias: [Leaflet](https://leafletjs.com) (BSD-2-Clause) y [Chart.js](https://www.chartjs.org) (MIT). Los mapas son de © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright).
+Las librerías incluidas en `web/app/static/vendor/` mantienen sus propias licencias: [Leaflet](https://leafletjs.com) (BSD-2-Clause) y [Chart.js](https://www.chartjs.org) (MIT). Los mapas son de © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright) y las imágenes de satélite de Esri (World Imagery).

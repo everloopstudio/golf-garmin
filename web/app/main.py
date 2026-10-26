@@ -118,7 +118,7 @@ init_db()
 async def security_headers(request: Request, call_next):
     resp = await call_next(request)
     resp.headers["Content-Security-Policy"] = (
-        "default-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; "
+        "default-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://server.arcgisonline.com; "
         "style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; "
         "base-uri 'none'; form-action 'self'"
     )
@@ -288,6 +288,12 @@ def summarize(r: dict, shots: list[dict]) -> dict:
     total = sum(h["strokes"] for h in played)
     par_played = sum(h["par"] for h in played)
     dists = [s["dist"] for s in shots if s["dist"] is not None]
+    # El reloj guarda en cada golpe la distancia desde el golpe anterior, es decir, lo que
+    # voló el golpe anterior. "carry" la asigna al golpe que la hizo: la del golpe n es la
+    # que trae el golpe n+1 del mismo hoyo (el ultimo golpe del hoyo no tiene).
+    for i, s in enumerate(shots):
+        nxt = shots[i + 1] if i + 1 < len(shots) else None
+        s["carry"] = nxt["dist"] if nxt and nxt["hole"] == s["hole"] else None
     r.update(
         pars=pars,
         per_hole=per_hole,
@@ -307,7 +313,7 @@ def all_rounds():
         out = []
         for r in rows:
             shots = [dict(s) for s in con.execute(
-                "SELECT hole, n, ts, lat, lon, dist FROM shots WHERE round_id = ?", (r["id"],))]
+                "SELECT hole, n, ts, lat, lon, dist FROM shots WHERE round_id = ? ORDER BY hole, n", (r["id"],))]
             out.append(summarize(r, shots))
     return out
 

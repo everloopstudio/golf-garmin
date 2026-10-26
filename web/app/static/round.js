@@ -8,7 +8,31 @@
     return;
   }
   var map = L.map('map', { zoomControl: true, attributionControl: false });
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+  // Capas de fondo: mapa (OpenStreetMap) o satelite (Esri World Imagery); se recuerda la eleccion.
+  var bases = {
+    map: { layer: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
+           credit: '© colaboradores de OpenStreetMap' },
+    sat: { layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                              { maxZoom: 19, maxNativeZoom: 18 }),
+           credit: 'Imágenes © Esri, Maxar, Earthstar Geographics' }
+  };
+  var current = null;
+  function setBase(key) {
+    if (!bases[key]) key = 'map';
+    if (current) map.removeLayer(bases[current].layer);
+    bases[key].layer.addTo(map).bringToBack();
+    current = key;
+    document.getElementById('map-credit').textContent = bases[key].credit;
+    document.querySelectorAll('#basemap button').forEach(function (b) { b.classList.toggle('on', b.dataset.layer === key); });
+    try { localStorage.setItem('golfito-basemap', key); } catch (e) {}
+  }
+  document.querySelectorAll('#basemap button').forEach(function (b) {
+    b.addEventListener('click', function () { setBase(b.dataset.layer); });
+  });
+  var saved = null;
+  try { saved = localStorage.getItem('golfito-basemap'); } catch (e) {}
+  setBase(saved || 'map');
   var layer = L.layerGroup().addTo(map);
   var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 
@@ -23,7 +47,7 @@
     });
     sel.forEach(function (s) {
       var icon = L.divIcon({ className: '', html: '<span class="pin">' + s.n + '</span>', iconSize: [24, 24], iconAnchor: [12, 12] });
-      var tip = 'Hoyo ' + s.hole + ' · golpe ' + s.n + (s.dist !== null ? ' · ' + Math.round(s.dist) + ' m' : '');
+      var tip = 'Hoyo ' + s.hole + ' · golpe ' + s.n + (s.carry != null ? ' · ' + Math.round(s.carry) + ' m' : '');
       L.marker([s.lat, s.lon], { icon: icon }).bindTooltip(tip).addTo(layer);
     });
     if (sel.length) map.fitBounds(sel.map(function (s) { return [s.lat, s.lon]; }), { padding: [30, 30], maxZoom: 19 });
