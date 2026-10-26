@@ -155,7 +155,8 @@ Cada vez que cambies algo del reloj (por ejemplo, el token o la dirección de la
 
 En la pantalla verás:
 
-- **Arriba:** el número de hoyo.
+- **Arriba del todo:** la hora, en pequeño.
+- **Arriba:** el número de hoyo (`#3`).
 - **En la esfera pequeña:** el par del hoyo. Las **8 rayitas** alrededor indican la señal GPS (más rayas gruesas = mejor señal; espera a tener varias antes de empezar).
 - **En grande:** los golpes de este hoyo.
 - **Golpe ant. / Desde golpe:** cuántos metros voló tu último golpe, o cuánto llevas andado desde el último golpe.

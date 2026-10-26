@@ -1,5 +1,6 @@
 using Toybox.Application;
 using Toybox.Graphics;
+using Toybox.System;
 using Toybox.Timer;
 using Toybox.WatchUi;
 
@@ -16,6 +17,19 @@ function fmtKm(d) {
     }
     var tenths = (d / 100.0 + 0.5).toNumber();
     return (tenths / 10).toString() + "." + (tenths % 10).toString() + " km";
+}
+
+// Hora del dia en el formato del reloj (24 h o 12 h).
+function fmtClock() {
+    var t = System.getClockTime();
+    var hour = t.hour;
+    if (!System.getDeviceSettings().is24Hour) {
+        hour = hour % 12;
+        if (hour == 0) {
+            hour = 12;
+        }
+    }
+    return hour.format("%d") + ":" + t.min.format("%02d");
 }
 
 function fmtDiff(strokes, par) {
@@ -59,6 +73,9 @@ class GolfView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
         dc.clear();
 
+        // hora del dia, pequena, arriba del todo (entre el borde y la esfera pequena)
+        dc.drawText(cx - 6, 1, Graphics.FONT_XTINY, fmtClock(), Graphics.TEXT_JUSTIFY_CENTER);
+
         var holeNo = model.firstHole + model.hole;
         var sub = (WatchUi has :getSubscreen) ? WatchUi.getSubscreen() : null;
         var topCx = cx;
@@ -81,10 +98,10 @@ class GolfView extends WatchUi.View {
                 Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
             topCx = (w * 0.18 + sub.x) / 2;
-            dc.drawText(topCx, h * 0.09, Graphics.FONT_SMALL, "Hoyo " + holeNo, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(topCx, h * 0.10, Graphics.FONT_MEDIUM, "#" + holeNo, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.drawText(cx, h * 0.06, Graphics.FONT_SMALL,
-                "Hoyo " + holeNo + "  Par " + model.pars[model.hole], Graphics.TEXT_JUSTIFY_CENTER);
+                "#" + holeNo + "  Par " + model.pars[model.hole], Graphics.TEXT_JUSTIFY_CENTER);
         }
 
         // golpes del hoyo, en grande
