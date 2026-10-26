@@ -22,6 +22,7 @@ class GolfModel {
     var lastLoc = null;      // [lat, lon] del ultimo golpe del hoyo actual
     var lastShotDist = null; // metros del ultimo golpe medido
     var session = null;
+    var undoArmed = false;   // primer UP pulsado: falta confirmar para quitar el golpe
     var startSteps = 0;
     var endSteps = null;
     var endDistance = null;

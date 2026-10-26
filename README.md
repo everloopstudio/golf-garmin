@@ -149,7 +149,7 @@ Cada vez que cambies algo del reloj (por ejemplo, el token o la dirección de la
 | Botón | Qué hace |
 |---|---|
 | **START / GPS** (arriba a la derecha) | **+1 golpe**. El reloj vibra y guarda dónde estás. |
-| **UP** (centro izquierda) | **-1 golpe** (para corregir un golpe marcado por error). |
+| **UP** (centro izquierda) | **-1 golpe** (para corregir un golpe marcado por error). Pide confirmación: sale un aviso y hay que pulsar **UP otra vez** antes de 3 segundos. |
 | **DOWN** (abajo izquierda) | **Hoyo siguiente**. |
 | **BACK / SET** (abajo derecha) | Menú: continuar, hoyo anterior, **guardar y salir**, descartar. |
 

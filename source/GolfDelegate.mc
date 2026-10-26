@@ -6,19 +6,41 @@ using Toybox.WatchUi;
 
 // Controles del Instinct 2:
 //   START/STOP (GPS)   -> +1 golpe (vibra, guarda la posicion GPS)
-//   UP                 -> -1 golpe (deshace el ultimo)
+//   UP                 -> -1 golpe: pide confirmacion (otro UP antes de 3 s)
 //   DOWN               -> hoyo siguiente
 //   BACK (SET)         -> menu: continuar, hoyo anterior, guardar y salir, descartar
 class GolfDelegate extends WatchUi.BehaviorDelegate {
 
     var model;
+    var undoTimer = null;
 
     function initialize(m) {
         BehaviorDelegate.initialize();
         model = m;
     }
 
+    // Quitar un golpe pide un segundo UP: el primero solo muestra el aviso en pantalla.
+    function armUndo() {
+        model.undoArmed = true;
+        if (undoTimer == null) {
+            undoTimer = new Timer.Timer();
+        }
+        undoTimer.stop();
+        undoTimer.start(method(:disarmUndo), 3000, false);
+    }
+
+    function disarmUndo() as Void {
+        if (undoTimer != null) {
+            undoTimer.stop();
+        }
+        if (model.undoArmed) {
+            model.undoArmed = false;
+            WatchUi.requestUpdate();
+        }
+    }
+
     function onSelect() {
+        disarmUndo();
         model.markShot();
         if (Attention has :vibrate) {
             Attention.vibrate([ new Attention.VibeProfile(60, 150) ]);
@@ -28,18 +50,28 @@ class GolfDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onPreviousPage() {
-        model.undoShot();
+        if (model.strokes[model.hole] == 0) {
+            return true;  // nada que quitar
+        }
+        if (model.undoArmed) {
+            disarmUndo();
+            model.undoShot();
+        } else {
+            armUndo();
+        }
         WatchUi.requestUpdate();
         return true;
     }
 
     function onNextPage() {
+        disarmUndo();
         model.nextHole();
         WatchUi.requestUpdate();
         return true;
     }
 
     function onBack() {
+        disarmUndo();
         openMenu();
         return true;
     }

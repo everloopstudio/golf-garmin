@@ -114,6 +114,15 @@ class GolfView extends WatchUi.View {
 
         // km recorridos (el estado del GPS lo indican las rayas de la esfera pequena)
         dc.drawText(cx, h * 0.795, Graphics.FONT_XTINY, fmtKm(model.distanceNowM()), Graphics.TEXT_JUSTIFY_CENTER);
+
+        // aviso de confirmacion para quitar un golpe: franja negra sobre la parte de abajo
+        if (model.undoArmed) {
+            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+            dc.fillRectangle(0, h * 0.585, w, h * 0.36);
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, h * 0.605, Graphics.FONT_TINY, "UP otra vez", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, h * 0.72, Graphics.FONT_XTINY, "para quitar golpe", Graphics.TEXT_JUSTIFY_CENTER);
+        }
     }
 }
 
