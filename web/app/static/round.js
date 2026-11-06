@@ -9,30 +9,7 @@
   }
   var map = L.map('map', { zoomControl: true, attributionControl: false });
 
-  // Capas de fondo: mapa (OpenStreetMap) o satelite (Esri World Imagery); se recuerda la eleccion.
-  var bases = {
-    map: { layer: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
-           credit: '© colaboradores de OpenStreetMap' },
-    sat: { layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                              { maxZoom: 19, maxNativeZoom: 18 }),
-           credit: 'Imágenes © Esri, Maxar, Earthstar Geographics' }
-  };
-  var current = null;
-  function setBase(key) {
-    if (!bases[key]) key = 'map';
-    if (current) map.removeLayer(bases[current].layer);
-    bases[key].layer.addTo(map).bringToBack();
-    current = key;
-    document.getElementById('map-credit').textContent = bases[key].credit;
-    document.querySelectorAll('#basemap button').forEach(function (b) { b.classList.toggle('on', b.dataset.layer === key); });
-    try { localStorage.setItem('golfito-basemap', key); } catch (e) {}
-  }
-  document.querySelectorAll('#basemap button').forEach(function (b) {
-    b.addEventListener('click', function () { setBase(b.dataset.layer); });
-  });
-  var saved = null;
-  try { saved = localStorage.getItem('golfito-basemap'); } catch (e) {}
-  setBase(saved || 'map');
+  golfitoBasemap(map, '#basemap', '#map-credit');
   var layer = L.layerGroup().addTo(map);
   var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 

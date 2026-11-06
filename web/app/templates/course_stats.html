@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ name }} · GOLFITO{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/vendor/leaflet.css">{% endblock %}
 {% block content %}
 <a class="back" href="/stats">← Estadísticas</a>
 <h1>{{ name }}</h1>
@@ -21,6 +22,19 @@
 <section class="card">
   <h2>Evolución{% if d.bests|length > 1 %} · rondas de {{ d.chart_holes }} hoyos{% endif %}</h2>
   <div class="chart-box"><canvas id="evo"></canvas></div>
+</section>
+{% endif %}
+
+{% if heat %}
+<section class="card">
+  <h2>Mapa de calor</h2>
+  <div class="map-bar">
+    <div class="seg-mini" id="heat-mode"><button type="button" data-mode="all" class="on">Todos los golpes</button><button type="button" data-mode="tee">Dónde cae la salida</button></div>
+    <div class="seg-mini" id="heat-basemap"><button type="button" data-layer="map">Mapa</button><button type="button" data-layer="sat">Satélite</button></div>
+  </div>
+  <div class="chips" id="heat-holes"></div>
+  <div id="heatmap" role="img" aria-label="Mapa de calor de los golpes"></div>
+  <p class="muted small"><span id="heat-count"></span> · <span id="heat-credit"></span></p>
 </section>
 {% endif %}
 
@@ -61,8 +75,15 @@
   </ul>
 </section>
 <script type="application/json" id="chart-data">{{ d.chart|tojson }}</script>
+<script type="application/json" id="heat-data">{{ heat|tojson }}</script>
 {% endblock %}
 {% block scripts %}
+{% if heat %}
+<script src="/static/vendor/leaflet.js"></script>
+<script src="/static/vendor/leaflet-heat.js"></script>
+<script src="/static/basemap.js"></script>
+<script src="/static/heatmap.js"></script>
+{% endif %}
 {% if d.chart|length > 1 %}
 <script src="/static/vendor/chart.umd.min.js"></script>
 <script src="/static/evolution.js"></script>

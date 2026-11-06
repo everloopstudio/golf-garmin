@@ -382,7 +382,11 @@ def course_stats(request: Request, name: str = "", _: None = Depends(require_log
     for p in detail["chart"]:
         p["label"] = local(p["label"]).strftime("%d/%m")
     latest = max(played, key=lambda r: r["started_at"])
+    # mapa de calor: [lat, lon, hoyo, n] de todos los golpes con GPS del campo
+    heat = [[s["lat"], s["lon"], s["hole"], s["n"]]
+            for r in played for s in r["shots"] if s["lat"] is not None and s["lon"] is not None]
     return templates.TemplateResponse(request, "course_stats.html", {
+        "heat": heat,
         "name": name, "d": detail, "holes_n": len(latest["pars"]), "par": sum(latest["pars"]),
         "course_id": course_id_by_name(name)})
 
