@@ -199,6 +199,12 @@ class CourseMenuDelegate extends WatchUi.Menu2InputDelegate {
             Application.getApp().retrySend();
             return;
         }
+        if (item.getId() == :ping) {
+            item.setSubLabel("Probando...");
+            WatchUi.requestUpdate();
+            Application.getApp().testConnection();
+            return;
+        }
         var course = Application.getApp().courses[item.getId()];
         var pars = course[1];
         if (pars.size() <= 9) {

@@ -27,22 +27,29 @@ class GolfSync {
             } catch (e) {
             }
         }
+        return codeText(c);
+    }
+
+    // Motivo corto + codigo, p. ej. "sin movil (-104)". Codigos en Toybox.Communications.
+    function codeText(c) {
         if (c == null) {
             return "";
         }
-        if (c == -104 || c == -2) {
-            return "sin movil";
+        var why = "error";
+        if (c == -104) {
+            why = "sin movil";
+        } else if (c == -2) {
+            why = "movil no responde";
+        } else if (c == -102) {
+            why = "envio muy grande";
+        } else if (c == -300 || c == "timeout") {
+            why = "sin respuesta";
+        } else if (c == 401) {
+            why = "token incorrecto";
+        } else if (c == -1001) {
+            why = "requiere https";
         }
-        if (c == -300 || c == "timeout") {
-            return "sin respuesta";
-        }
-        if (c == 401) {
-            return "token incorrecto";
-        }
-        if (c == -1001) {
-            return "requiere https";
-        }
-        return "error " + c;
+        return c == "timeout" ? why : why + " (" + c + ")";
     }
 
     // Guarda el codigo del ultimo fallo (o lo borra con null) para verlo en la siguiente apertura.
@@ -125,6 +132,40 @@ class GolfSync {
     function coursesUrl() {
         var u = webhookUrl();
         return u.substring(0, u.length() - 6) + "courses";
+    }
+
+    // Prueba de conexion sin datos de ronda: GET .../healthz. Separa "no hay conexion" de
+    // "la conexion va pero la ronda no sale".
+    var pingCode = null;
+    var pingDone = null;
+
+    function ping(done as Method) as Void {
+        pingDone = done;
+        var u = webhookUrl();
+        try {
+            Communications.makeWebRequest(u.substring(0, u.length() - 10) + "healthz", null, {
+                :method => Communications.HTTP_REQUEST_METHOD_GET,
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            }, method(:onPing));
+        } catch (e) {
+            onPing(-999, null);
+        }
+    }
+
+    function onPing(code as Number, data as Dictionary or String or Null) as Void {
+        pingCode = code;
+        if (pingDone != null) {
+            var d = pingDone;
+            pingDone = null;
+            d.invoke();
+        }
+    }
+
+    function pingText() {
+        if (pingCode == null) {
+            return "Pulsa para probar";
+        }
+        return pingCode == 200 ? "Conexion OK" : "Fallo: " + codeText(pingCode);
     }
 
     // done: se llama al terminar la descarga, haya ido bien o no.
