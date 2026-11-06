@@ -194,7 +194,8 @@ El reloj descarga la lista de campos cada vez que abres GOLFITO, así que el cam
 |---|---|
 | El reloj conectado por USB **no aparece** como unidad | Espera hasta un minuto. Si sigue sin salir, desconecta, reinicia el reloj y vuelve a conectarlo (mejor directo al ordenador, sin hubs, y con un cable de datos). |
 | GOLFITO **no aparece** en el reloj | Comprueba que el `.prg` está en `GARMIN/APPS/` y que expulsaste la unidad antes de desconectar. |
-| La ronda **no llega a la web** | Revisa que el móvil tenga Bluetooth y Garmin Connect abierto. La ronda queda guardada en el reloj y se reintenta al abrir GOLFITO. |
+| La ronda **no llega a la web** | Casi siempre es porque **la app Garmin Connect del móvil estaba cerrada** (no basta con el Bluetooth: Garmin Connect hace de puente). Ábrela, déjala en segundo plano (no la cierres deslizando) y en el reloj abre GOLFITO → **Reintentar envío**. Las rondas no se pierden: esperan en el reloj. |
+| Quiero saber si el reloj llega a la web | En el menú de campos de GOLFITO, **Probar conexión**: dice "Conexión OK" o el motivo del fallo con su código (`-104` = el reloj no encuentra Garmin Connect en el móvil). |
 | Sigue sin llegar | Comprueba que la dirección y el `DEVICE_TOKEN` de `source/Secrets.mc` son exactamente los del servidor, que la web usa **HTTPS** y que volviste a compilar y copiar la app tras cambiarlos. |
 | La lista de campos del reloj **no se actualiza** | Igual que arriba: necesita conexión con el móvil al abrir la app. Sin conexión usa la última lista que descargó. |
 | La web dice **"Demasiados intentos"** | Has fallado el PIN 5 veces. Espera 15 minutos. |
