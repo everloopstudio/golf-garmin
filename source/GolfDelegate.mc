@@ -135,9 +135,29 @@ class SummaryDelegate extends WatchUi.BehaviorDelegate {
         }
         leaving = true;
         timer = new Timer.Timer();
-        timer.start(method(:saveAndExit), 15000, false);
-        Application.getApp().sync.sendPending(method(:saveAndExit));
+        timer.start(method(:onTimeout), 15000, false);
+        Application.getApp().sync.sendPending(method(:onSent));
         return true;
+    }
+
+    // Enviada: guardar y salir. Si fallo, se ensena el motivo 4 s antes de salir
+    // (la ronda queda en cola y se reintenta al abrir la app).
+    function onSent() as Void {
+        if (Application.getApp().sync.status == :failed) {
+            WatchUi.requestUpdate();
+            timer.stop();
+            timer.start(method(:saveAndExit), 4000, false);
+        } else {
+            saveAndExit();
+        }
+    }
+
+    function onTimeout() as Void {
+        var sync = Application.getApp().sync;
+        if (sync.status == :sending) {
+            sync.rememberError("timeout");
+        }
+        saveAndExit();
     }
 
     function saveAndExit() as Void {
@@ -173,6 +193,12 @@ class CourseMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     function onSelect(item) {
+        if (item.getId() == :retry) {
+            item.setSubLabel("Enviando...");
+            WatchUi.requestUpdate();
+            Application.getApp().retrySend();
+            return;
+        }
         var course = Application.getApp().courses[item.getId()];
         var pars = course[1];
         if (pars.size() <= 9) {

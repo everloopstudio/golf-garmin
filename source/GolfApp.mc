@@ -48,12 +48,31 @@ class GolfApp extends Application.AppBase {
         showCourseMenu();
     }
 
+    // "Reintentar envio" del menu: al terminar se vuelve a montar el menu con el resultado.
+    function retrySend() as Void {
+        sync.sendPending(method(:onRetryDone));
+    }
+
+    function onRetryDone() as Void {
+        courses = null;
+        showCourseMenu();
+    }
+
     function showCourseMenu() as Void {
         if (!coursesReady || !introDone || courses != null) {
             return;  // falta algo, o el menu ya se mostro
         }
         courses = getCourses();
-        var menu = new WatchUi.Menu2({ :title => "Campo" });
+        // si quedan rondas sin enviar, el titulo lo dice (con el motivo del ultimo fallo)
+        var n = sync.pendingCount();
+        var title = "Campo";
+        if (n > 0) {
+            title = n + " sin enviar";
+        }
+        var menu = new WatchUi.Menu2({ :title => title });
+        if (n > 0) {
+            menu.addItem(new WatchUi.MenuItem("Reintentar envio", sync.errorText(), :retry, {}));
+        }
         for (var i = 0; i < courses.size(); i++) {
             menu.addItem(new WatchUi.MenuItem(courses[i][0], courses[i][1].size() + " hoyos", i, {}));
         }

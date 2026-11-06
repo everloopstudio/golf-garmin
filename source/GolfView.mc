@@ -183,8 +183,11 @@ class SummaryView extends WatchUi.View {
             Graphics.TEXT_JUSTIFY_CENTER);
 
         var msg = saved ? "Pulsa para guardar y salir" : "Pulsa una tecla para salir";
-        if (saved && Application.getApp().sync.status == :sending) {
+        var sync = Application.getApp().sync;
+        if (saved && sync.status == :sending) {
             msg = "Enviando...";
+        } else if (saved && sync.status == :failed) {
+            msg = "No enviada: " + sync.errorText();
         }
         dc.drawText(cx, h * 0.86, Graphics.FONT_XTINY, msg, Graphics.TEXT_JUSTIFY_CENTER);
     }

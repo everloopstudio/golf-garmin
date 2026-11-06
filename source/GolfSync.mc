@@ -13,6 +13,46 @@ class GolfSync {
     var onDone = null;   // se llama al terminar la cola de envio, bien o mal
     var coursesDone = null;
 
+    function pendingCount() {
+        var q = pending();
+        return q == null ? 0 : q.size();
+    }
+
+    // Texto corto del ultimo fallo de envio, para mostrarlo en el reloj.
+    function errorText() {
+        var c = lastCode;
+        if (c == null) {
+            try {
+                c = Application.Storage.getValue("lastErr");
+            } catch (e) {
+            }
+        }
+        if (c == null) {
+            return "";
+        }
+        if (c == -104 || c == -2) {
+            return "sin movil";
+        }
+        if (c == -300 || c == "timeout") {
+            return "sin respuesta";
+        }
+        if (c == 401) {
+            return "token incorrecto";
+        }
+        if (c == -1001) {
+            return "requiere https";
+        }
+        return "error " + c;
+    }
+
+    // Guarda el codigo del ultimo fallo (o lo borra con null) para verlo en la siguiente apertura.
+    function rememberError(c) {
+        try {
+            Application.Storage.setValue("lastErr", c);
+        } catch (e) {
+        }
+    }
+
     function pending() {
         try {
             var q = Application.Storage.getValue("pending");
@@ -50,6 +90,7 @@ class GolfSync {
         } catch (e) {
             status = :failed;
             lastCode = "EXC";
+            rememberError(lastCode);
             finishQueue();
         }
         WatchUi.requestUpdate();
@@ -67,12 +108,14 @@ class GolfSync {
                 }
             }
             status = :ok;
+            rememberError(null);
             if (pending() != null) {
                 sendPending(null);
                 return;
             }
         } else {
             status = :failed;
+            rememberError(code);
         }
         finishQueue();
         WatchUi.requestUpdate();
